@@ -86,9 +86,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Mise à jour des stats
                 document.getElementById('statCourses').textContent = data.courses.length;
                 let totalLessons = 0;
+                let totalStudents = 0;
 
                 data.courses.forEach(course => {
                     totalLessons += parseInt(course.lesson_count || 0);
+                    totalStudents += parseInt(course.student_count || 0);
+                    
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
                         <td style="font-weight:500;">${course.title}</td>
@@ -103,6 +106,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
 
                 document.getElementById('statLessons').textContent = totalLessons;
+                document.getElementById('statStudents').textContent = totalStudents;
             } else {
                 tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--text-muted); padding:40px;">
                     <p style="font-size:1.1rem;">Aucun cours pour le moment.</p>
@@ -113,6 +117,72 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     loadCourses();
+
+    // ====== NOUVEAU: GESTION DES ONGLETS ======
+    const tabCourses = document.getElementById('tabTeacherCourses');
+    const tabResults = document.getElementById('tabTeacherResults');
+    const secCourses = document.getElementById('sectionCourses');
+    const secResults = document.getElementById('sectionResults');
+
+    tabCourses.addEventListener('click', (e) => {
+        e.preventDefault();
+        tabCourses.classList.add('active');
+        tabResults.classList.remove('active');
+        secCourses.classList.remove('hidden');
+        secResults.classList.add('hidden');
+    });
+
+    tabResults.addEventListener('click', (e) => {
+        e.preventDefault();
+        tabResults.classList.add('active');
+        tabCourses.classList.remove('active');
+        secResults.classList.remove('hidden');
+        secCourses.classList.add('hidden');
+        loadTeacherResults();
+    });
+
+    function loadTeacherResults() {
+        fetch('api/courses.php?action=get_teacher_results')
+        .then(r => r.json())
+        .then(data => {
+            const tbody = document.getElementById('teacherResultsList');
+            tbody.innerHTML = '';
+            
+            if (data.status === 'success' && data.results && data.results.length > 0) {
+                data.results.forEach(res => {
+                    const tr = document.createElement('tr');
+                    
+                    let certBadge = `<span style="padding:4px 8px; border-radius:6px; font-size:0.75rem; font-weight:600; background:rgba(255,255,255,0.05); color:var(--text-muted);">${res.cert_status}</span>`;
+                    if (res.cert_status === 'pending') {
+                        certBadge = `<span style="padding:4px 8px; border-radius:6px; font-size:0.75rem; font-weight:600; background:rgba(245,158,11,0.15); color:#f59e0b;">En attente</span>`;
+                    } else if (res.cert_status === 'approved') {
+                        certBadge = `<span style="padding:4px 8px; border-radius:6px; font-size:0.75rem; font-weight:600; background:rgba(16,185,129,0.15); color:#10b981;">Approuvé</span>`;
+                    } else if (res.cert_status === 'rejected') {
+                        certBadge = `<span style="padding:4px 8px; border-radius:6px; font-size:0.75rem; font-weight:600; background:rgba(239,68,68,0.15); color:#ef4444;">Rejeté</span>`;
+                    }
+                    
+                    let progressFormat = parseFloat(res.progress_percentage).toFixed(0) + '%';
+                    
+                    tr.innerHTML = `
+                        <td style="font-weight:500;">${res.first_name} ${res.last_name}</td>
+                        <td style="color:var(--text-muted);">${res.course_title}</td>
+                        <td>
+                            <div style="display:flex; align-items:center; gap:10px;">
+                                <div style="flex:1; height:6px; background:rgba(255,255,255,0.05); border-radius:3px; overflow:hidden;">
+                                    <div style="height:100%; width:${progressFormat}; background:var(--primary);"></div>
+                                </div>
+                                <span style="font-size:0.85rem; font-weight:600;">${progressFormat}</span>
+                            </div>
+                        </td>
+                        <td>${certBadge}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } else {
+                tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--text-muted); padding:30px;">Aucun étudiant inscrit pour le moment.</td></tr>`;
+            }
+        });
+    }
 
     // ====== 6. OUVRIR LA MODALE LEÇONS ======
     window.openLessons = function(courseId, courseTitle) {
@@ -179,12 +249,42 @@ document.addEventListener('DOMContentLoaded', function() {
         
         document.getElementById('eval_lesson_id').value = lessonId;
         document.getElementById('evalCourseTitle').textContent = 'Leçon : ' + lessonTitle;
+        
+        // Vider les questions existantes et ajouter un bloc vide
+        const container = document.getElementById('questionsContainer');
+        if (container) {
+            container.innerHTML = '';
+            questionCount = 0; // Réinitialise la variable globale du HTML
+            addQuestionBlock(); // Ajoute une question vide
+        }
+
         openModal('evalModal');
     };
 
     // ====== 9. CREER UNE EVALUATION ======
     document.getElementById('createEvalForm').addEventListener('submit', function(e) {
         e.preventDefault();
+        
+        // Sérialiser les questions
+        const blocks = document.querySelectorAll('.question-block');
+        const questionsArray = [];
+        blocks.forEach(block => {
+            const q = block.querySelector('.q-text').value;
+            const c = block.querySelector('.q-correct').value;
+            const w1 = block.querySelector('.q-wrong1').value;
+            const w2 = block.querySelector('.q-wrong2').value;
+            if (q && c && w1) {
+                questionsArray.push({ q, c, w1, w2 });
+            }
+        });
+        
+        if (questionsArray.length === 0) {
+            Swal.fire({ title: 'Erreur', text: 'Ajoutez au moins une question valide.', icon: 'warning', background: '#1a1d2d', color: '#f8fafc' });
+            return;
+        }
+        
+        document.getElementById('questions_json').value = JSON.stringify(questionsArray);
+
         const fd = new FormData(this);
         fd.append('action', 'create');
 

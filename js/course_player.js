@@ -47,29 +47,69 @@ document.addEventListener('DOMContentLoaded', function() {
                     mediaViewer.innerHTML = `<iframe src="${lesson.content_url}#toolbar=0" type="application/pdf" style="width:100%; height:100%; border:none; border-radius:12px;"></iframe>`;
                 }
 
-                // 5. Simuler le fait que l'étudiant a fini de lire/regarder
+                // 5. Charger l'évaluation de cette leçon
                 setTimeout(() => {
-                    // Affiche la section d'évaluation
-                    evaluationSection.classList.remove('hidden');
-                    
-                    // Pour simplifier on garde la question en dur
-                    document.getElementById('evalQuestionText').textContent = "Avez-vous bien compris cette leçon ?";
-                    const optionsContainer = document.getElementById('evalOptionsContainer');
-                    
-                    const options = ["Oui, parfaitement", "Non, je dois relire", "Je n'ai rien compris"];
-                    options.forEach((opt, index) => {
-                        const div = document.createElement('div');
-                        div.className = 'eval-option';
-                        div.innerHTML = `
-                            <input type="radio" name="answer" id="opt${index}" value="${opt}" required>
-                            <label for="opt${index}" style="width:100%; cursor:pointer;">${opt}</label>
-                        `;
-                        div.addEventListener('click', () => {
-                            document.getElementById(`opt${index}`).checked = true;
-                        });
-                        optionsContainer.appendChild(div);
+                    fetch('api/evaluations.php?action=get_evaluation&lesson_id=' + lesson.id)
+                    .then(res => res.json())
+                    .then(evalResponse => {
+                        if (evalResponse.status === 'success' && evalResponse.evaluation) {
+                            const evalData = evalResponse.evaluation;
+                            window.currentEvalData = evalData;
+                            
+                            evaluationSection.classList.remove('hidden');
+                            document.getElementById('evalTitleHeader').textContent = evalData.title;
+                            document.getElementById('evalDesc').textContent = `Répondez aux questions pour valider cette leçon. Score requis : ${evalData.required_score}%`;
+                            
+                            const quizContainer = document.getElementById('quizContainer');
+                            if(quizContainer) quizContainer.innerHTML = '';
+                            
+                            evalData.questions.forEach((q, index) => {
+                                let block = document.createElement('div');
+                                block.style.marginBottom = '25px';
+                                block.style.padding = '15px';
+                                block.style.background = 'rgba(255,255,255,0.02)';
+                                block.style.borderRadius = '10px';
+                                block.style.border = '1px solid var(--border-color)';
+
+                                let qTitle = document.createElement('div');
+                                qTitle.className = 'eval-question';
+                                qTitle.style.marginBottom = '15px';
+                                qTitle.textContent = `${index + 1}. ${q.question_text}`;
+                                block.appendChild(qTitle);
+
+                                let optionsDiv = document.createElement('div');
+                                optionsDiv.className = 'eval-options';
+
+                                q.choices.forEach(choice => {
+                                    let label = document.createElement('label');
+                                    label.className = 'eval-option';
+                                    label.innerHTML = `
+                                        <input type="radio" name="question_${q.id}" value="${choice.is_correct}">
+                                        <span>${choice.choice_text}</span>
+                                    `;
+                                    optionsDiv.appendChild(label);
+                                });
+
+                                block.appendChild(optionsDiv);
+                                if(quizContainer) quizContainer.appendChild(block);
+                            });
+                        } else {
+                            // Pas d'évaluation
+                            evaluationSection.classList.remove('hidden');
+                            document.getElementById('evalTitleHeader').textContent = "Fin de la leçon";
+                            document.getElementById('evalDesc').textContent = "Il n'y a pas d'évaluation pour cette leçon.";
+                            
+                            const quizContainer = document.getElementById('quizContainer');
+                            if(quizContainer) quizContainer.innerHTML = '';
+                            
+                            const btnSubmitEval = document.getElementById('btnSubmitEval');
+                            if (btnSubmitEval) {
+                                btnSubmitEval.textContent = "Marquer comme terminée";
+                                window.currentEvalData = { is_empty: true, required_score: 0, questions: [] };
+                            }
+                        }
                     });
-                }, 2000);
+                }, 1000);
 
             } else {
                 mediaViewer.innerHTML = "<p style='color:var(--text-muted);'>L'enseignant n'a pas encore ajouté de leçon à ce cours.</p>";
@@ -84,44 +124,100 @@ document.addEventListener('DOMContentLoaded', function() {
         mediaViewer.innerHTML = "<p style='color:red;'>Impossible de contacter le serveur.</p>";
     });
 
-    // 6. Soumission de l'évaluation
+    // 6. Gestion de la soumission de l'évaluation
     const evalForm = document.getElementById('evaluationForm');
     if (evalForm) {
         evalForm.addEventListener('submit', function(e) {
-            e.preventDefault(); // Empêche le rechargement
+            e.preventDefault();
+            
+            if (!window.currentEvalData) return;
 
-            const selectedOption = document.querySelector('input[name="answer"]:checked');
-            if (!selectedOption) return;
-            
-            const selectedAnswer = selectedOption.value;
-            
-            // Simuler la validation
-            if (selectedAnswer === "Oui, parfaitement") {
-                // Marquer la progression (simulé ici par un appel API factice, ou on peut laisser le frontend gérer pour la démo)
-                Swal.fire({
-                    title: 'Félicitations !',
-                    text: 'Leçon validée. Vous avez terminé ce cours à 100% !',
-                    icon: 'success',
-                    confirmButtonText: 'Obtenir mon Certificat',
-                    confirmButtonColor: '#10b981',
-                    background: '#1a1d2d',
-                    color: '#f8fafc',
-                    allowOutsideClick: false
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        window.location.href = "certificate.html"; // Redirection vers le certificat
+            const evalData = window.currentEvalData;
+            let scoreObtained = 100;
+
+            if (!evalData.is_empty) {
+                const questions = evalData.questions;
+                let score = 0;
+                let answered = 0;
+
+                questions.forEach(q => {
+                    const selected = document.querySelector(`input[name="question_${q.id}"]:checked`);
+                    if (selected) {
+                        answered++;
+                        if (selected.value === "1") score++;
                     }
                 });
-            } else {
-                Swal.fire({
-                    title: 'Oups...',
-                    text: 'Prenez le temps de revoir le cours.',
-                    icon: 'info',
-                    confirmButtonText: 'Revoir le cours',
-                    background: '#1a1d2d',
-                    color: '#f8fafc'
-                });
+
+                if (answered < questions.length) {
+                    Swal.fire({
+                        title: 'Attention',
+                        text: 'Veuillez répondre à toutes les questions.',
+                        icon: 'warning',
+                        background: '#1a1d2d',
+                        color: '#f8fafc'
+                    });
+                    return;
+                }
+
+                scoreObtained = (score / questions.length) * 100;
+                const required = parseInt(evalData.required_score || 100);
+
+                if (scoreObtained < required) {
+                    Swal.fire({
+                        title: 'Échec',
+                        text: `Votre score est de ${scoreObtained.toFixed(0)}%. Le score requis est de ${required}%. Veuillez réessayer.`,
+                        icon: 'error',
+                        confirmButtonText: 'Réessayer',
+                        background: '#1a1d2d',
+                        color: '#f8fafc'
+                    }).then(() => {
+                        evalForm.reset();
+                    });
+                    return; // Stoppe l'exécution si échec
+                }
             }
+
+            // Si succès ou pas d'évaluation (is_empty) -> update_progress
+            const fd = new FormData();
+            fd.append('action', 'update_progress');
+            fd.append('course_id', courseId);
+            
+            fetch('api/courses.php', { method: 'POST', body: fd })
+            .then(r => r.json())
+            .then(res => {
+                let progress = res.new_progress ? parseFloat(res.new_progress) : 0;
+                let textMsg = evalData.is_empty ? 'Leçon terminée !' : `Leçon validée (Score: ${scoreObtained.toFixed(0)}%) !`;
+
+                if (progress >= 100) {
+                    Swal.fire({
+                        title: 'Félicitations !',
+                        text: textMsg + ' Vous avez terminé ce cours à 100% !',
+                        icon: 'success',
+                        confirmButtonText: 'Obtenir mon Certificat',
+                        confirmButtonColor: '#10b981',
+                        background: '#1a1d2d',
+                        color: '#f8fafc',
+                        allowOutsideClick: false
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            window.location.href = "certificate.html";
+                        }
+                    });
+                } else {
+                    Swal.fire({
+                        title: 'Bien joué !',
+                        text: textMsg + ` Progression actuelle : ${progress.toFixed(0)}%`,
+                        icon: 'success',
+                        confirmButtonText: 'Continuer',
+                        confirmButtonColor: '#6366f1',
+                        background: '#1a1d2d',
+                        color: '#f8fafc',
+                        allowOutsideClick: false
+                    }).then(() => {
+                        window.location.href = "student_dashboard.html"; 
+                    });
+                }
+            });
         });
     }
 });

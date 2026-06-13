@@ -127,18 +127,17 @@
 
                 <!-- Zone d'évaluation obligatoire à la fin de la leçon -->
                 <div class="evaluation-section hidden" id="evaluationSection">
-                    <h2>Évaluation de fin de leçon</h2>
-                    <p style="color:var(--text-muted); margin-bottom:20px;">Répondez à cette question pour valider votre progression.</p>
+                    <h2 id="evalTitleHeader">Évaluation de fin de leçon</h2>
+                    <p style="color:var(--text-muted); margin-bottom:20px;" id="evalDesc">Répondez aux questions pour valider votre progression.</p>
                     
                     <form id="evaluationForm">
                         <input type="hidden" id="lessonId" name="lesson_id">
-                        <div class="eval-question" id="evalQuestionText">Quelle est la fonction principale... ?</div>
                         
-                        <div class="eval-options" id="evalOptionsContainer">
-                            <!-- Les boutons radio seront injectés ici -->
+                        <div id="quizContainer">
+                            <!-- Les questions seront injectées ici par JS -->
                         </div>
                         
-                        <button type="submit" class="btn-submit-eval">Valider ma réponse</button>
+                        <button type="submit" class="btn-submit-eval" id="btnSubmitEval" style="margin-top:20px;">Valider mes réponses</button>
                     </form>
                 </div>
             </div>

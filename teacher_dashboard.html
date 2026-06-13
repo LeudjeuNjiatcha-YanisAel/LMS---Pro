@@ -199,11 +199,11 @@
                 <h2>LMS Pro</h2>
             </div>
             <nav class="main-nav">
-                <a href="#" class="nav-item active">
+                <a href="#" id="tabTeacherCourses" class="nav-item active">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9"></rect><rect x="14" y="3" width="7" height="5"></rect><rect x="14" y="12" width="7" height="9"></rect><rect x="3" y="16" width="7" height="5"></rect></svg>
                     Mes Cours
                 </a>
-                <a href="#" class="nav-item">
+                <a href="#" id="tabTeacherResults" class="nav-item">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
                     Résultats
                 </a>
@@ -226,56 +226,89 @@
                 <h1 class="page-title">Espace Enseignant</h1>
             </header>
 
-            <!-- Bannière de bienvenue -->
-            <section class="welcome-section">
-                <div class="welcome-text">
-                    <h2>Bienvenue, <span id="teacherName">Professeur</span> !</h2>
-                    <p>Gérez vos cours, ajoutez des leçons (PDF / Vidéo) et créez des évaluations.</p>
-                </div>
-                <button id="btnCreateCourse" class="btn-primary" style="margin-top:15px; position:relative; z-index:2; padding:12px 24px; border:none; border-radius:12px; background:white; color:var(--primary); font-weight:700; font-size:1rem; cursor:pointer; font-family:inherit;">+ Nouveau Cours</button>
-            </section>
+            <div id="sectionCourses" class="page-section">
+                <!-- Bannière de bienvenue -->
+                <section class="welcome-section">
+                    <div class="welcome-text">
+                        <h2>Bienvenue, <span id="teacherName">Professeur</span> !</h2>
+                        <p>Gérez vos cours, ajoutez des leçons (PDF / Vidéo) et créez des évaluations.</p>
+                    </div>
+                    <button id="btnCreateCourse" class="btn-primary" style="margin-top:15px; position:relative; z-index:2; padding:12px 24px; border:none; border-radius:12px; background:white; color:var(--primary); font-weight:700; font-size:1rem; cursor:pointer; font-family:inherit;">+ Nouveau Cours</button>
+                </section>
 
-            <!-- Stats rapides -->
-            <div class="stats-container" id="teacherStats">
-                <div class="stat-card">
-                    <div class="stat-icon" style="background:rgba(99,102,241,0.2); color:var(--primary);">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                <!-- Stats rapides -->
+                <div class="stats-container" id="teacherStats">
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background:rgba(99,102,241,0.2); color:var(--primary);">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                        </div>
+                        <div class="stat-details">
+                            <h3 id="statCourses">0</h3>
+                            <p>Cours</p>
+                        </div>
                     </div>
-                    <div class="stat-details">
-                        <h3 id="statCourses">0</h3>
-                        <p>Cours</p>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background:rgba(16,185,129,0.2); color:var(--accent-2);">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                        </div>
+                        <div class="stat-details">
+                            <h3 id="statLessons">0</h3>
+                            <p>Leçons</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background:rgba(245,158,11,0.2); color:var(--accent-3);">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                        </div>
+                        <div class="stat-details">
+                            <h3 id="statStudents">0</h3>
+                            <p>Étudiants</p>
+                        </div>
                     </div>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-icon" style="background:rgba(16,185,129,0.2); color:var(--accent-2);">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-                    </div>
-                    <div class="stat-details">
-                        <h3 id="statLessons">0</h3>
-                        <p>Leçons</p>
-                    </div>
+
+                <!-- Section Gestion -->
+                <div class="section-header">
+                    <h2>Vos cours</h2>
+                </div>
+
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Titre du cours</th>
+                                <th>Catégorie</th>
+                                <th>Leçons</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="teacherCoursesList">
+                            <tr><td colspan="4" style="text-align:center; color:var(--text-muted); padding:30px;">Chargement...</td></tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
 
-            <!-- Section Gestion -->
-            <div class="section-header">
-                <h2>Vos cours</h2>
-            </div>
-
-            <div class="table-container">
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>Titre du cours</th>
-                            <th>Catégorie</th>
-                            <th>Leçons</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="teacherCoursesList">
-                        <tr><td colspan="4" style="text-align:center; color:var(--text-muted); padding:30px;">Chargement...</td></tr>
-                    </tbody>
-                </table>
+            <!-- SECTION: RÉSULTATS DES ÉTUDIANTS -->
+            <div id="sectionResults" class="page-section hidden">
+                <div class="section-header">
+                    <h2>Résultats des étudiants</h2>
+                </div>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Étudiant</th>
+                                <th>Cours</th>
+                                <th>Progression Globale</th>
+                                <th>Certificat</th>
+                            </tr>
+                        </thead>
+                        <tbody id="teacherResultsList">
+                            <tr><td colspan="4" style="text-align:center; color:var(--text-muted); padding:30px;">Chargement...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </main>
     </div>
@@ -299,6 +332,11 @@
                     </select>
                 </div>
                 <div class="form-field">
+                    <label>Nombre de leçons prévues</label>
+                    <input type="number" name="total_lessons" required min="1" value="1">
+                    <small style="color:var(--text-muted); font-size:0.75rem;">Ce nombre sert à calculer la barre de progression des étudiants.</small>
+                </div>
+                <div class="form-field">
                     <label>Description</label>
                     <textarea name="description" required placeholder="Décrivez le contenu de ce cours..."></textarea>
                 </div>
@@ -318,7 +356,7 @@
             <div class="lessons-list" id="existingLessons"></div>
 
             <!-- Formulaire d'ajout -->
-            <form id="createLessonForm" style="margin-top:20px; padding-top:20px; border-top:1px solid var(--border-color);">
+            <form id="createLessonForm" enctype="multipart/form-data" style="margin-top:20px; padding-top:20px; border-top:1px solid var(--border-color);">
                 <input type="hidden" name="course_id" id="lesson_course_id">
                 <h3 style="font-size:1rem; margin-bottom:15px; color:var(--text-main);">Ajouter une leçon</h3>
                 <div class="form-field">
@@ -369,41 +407,99 @@
 
     <!-- ====== MODALE : EVALUATION (QCM) ====== -->
     <div id="evalModal" class="modal hidden">
-        <div class="modal-content">
+        <div class="modal-content" style="max-width: 600px;">
             <button class="close-btn" data-close="evalModal">&times;</button>
-            <h2>Créer une évaluation</h2>
+            <h2>Créer une évaluation (Quizz Multi-questions)</h2>
             <p style="color:var(--text-muted); margin-bottom:20px;" id="evalCourseTitle">Leçon : ...</p>
             
             <form id="createEvalForm">
                 <input type="hidden" name="lesson_id" id="eval_lesson_id">
-                <div class="form-field">
-                    <label>Titre de l'évaluation</label>
-                    <input type="text" name="eval_title" required placeholder="Ex: QCM Chapitre 1">
+                
+                <div style="display:flex; gap:15px; margin-bottom: 15px;">
+                    <div class="form-field" style="flex:2; margin-bottom:0;">
+                        <label>Titre de l'évaluation</label>
+                        <input type="text" name="eval_title" required placeholder="Ex: QCM Chapitre 1">
+                    </div>
+                    <div class="form-field" style="flex:1; margin-bottom:0;">
+                        <label>Note requise (%)</label>
+                        <input type="number" name="required_score" min="1" max="100" value="100" required>
+                    </div>
                 </div>
-                <div class="form-field">
-                    <label>Note requise pour valider (%)</label>
-                    <input type="number" name="required_score" min="1" max="100" value="100" required>
+
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:20px; margin-bottom:15px;">
+                    <h3 style="font-size:1.1rem; color:var(--text-main);">Questions</h3>
+                    <div>
+                        <button type="button" onclick="addQuestionBlock()" style="background:rgba(16,185,129,0.15); color:var(--accent-2); border:1px solid rgba(16,185,129,0.3); padding:6px 12px; border-radius:6px; font-size:0.8rem; cursor:pointer; font-weight:600; margin-right:5px;">+ Ajouter</button>
+                        <button type="button" onclick="generateAIQuiz()" style="background:rgba(99,102,241,0.15); color:var(--primary); border:1px solid rgba(99,102,241,0.3); padding:6px 12px; border-radius:6px; font-size:0.8rem; cursor:pointer; font-weight:600;">✨ Auto IA (3 Q.)</button>
+                    </div>
                 </div>
-                <div class="form-field">
-                    <label>Question</label>
-                    <textarea name="question_text" required placeholder="Posez votre question ici..." style="min-height: 80px;"></textarea>
+
+                <div id="questionsContainer" style="max-height: 40vh; overflow-y: auto; padding-right:10px; margin-bottom:20px;">
+                    <!-- Les blocs de questions s'ajouteront ici -->
                 </div>
                 
-                <h3 style="font-size:0.9rem; margin-top:20px; margin-bottom:10px; color:var(--accent-2);">Réponses proposées</h3>
-                <div class="form-field">
-                    <label style="color:#10b981;">Bonne réponse</label>
-                    <input type="text" name="correct_answer" required placeholder="La réponse correcte" style="border-color:#10b981; background:rgba(16,185,129,0.05);">
-                </div>
-                <div class="form-field">
-                    <label>Mauvaise réponse 1</label>
-                    <input type="text" name="wrong1" required placeholder="Fausse réponse">
-                </div>
-                <div class="form-field">
-                    <label>Mauvaise réponse 2 (Optionnel)</label>
-                    <input type="text" name="wrong2" placeholder="Fausse réponse">
-                </div>
-                <button type="submit" class="btn-modal-submit green" style="margin-top:10px;">Enregistrer l'évaluation</button>
+                <input type="hidden" name="questions_json" id="questions_json">
+                <button type="submit" class="btn-modal-submit green">Enregistrer l'évaluation complète</button>
             </form>
+            
+            <script>
+                let questionCount = 0;
+
+                function addQuestionBlock(qText = '', cAns = '', w1 = '', w2 = '') {
+                    questionCount++;
+                    const container = document.getElementById('questionsContainer');
+                    const block = document.createElement('div');
+                    block.className = 'question-block';
+                    block.style.cssText = "background: rgba(255,255,255,0.03); padding:15px; border-radius:10px; border:1px solid var(--border-color); margin-bottom:15px; position:relative;";
+                    block.innerHTML = `
+                        <button type="button" onclick="this.parentElement.remove()" style="position:absolute; top:10px; right:10px; background:none; border:none; color:#ef4444; cursor:pointer; font-size:1.2rem;">&times;</button>
+                        <h4 style="margin-bottom:10px; color:var(--text-muted); font-size:0.85rem;">Question ${questionCount}</h4>
+                        <div class="form-field">
+                            <textarea class="q-text" required placeholder="Votre question..." style="min-height:50px; font-size:0.9rem; padding:10px;">${qText}</textarea>
+                        </div>
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                            <div class="form-field" style="margin:0;">
+                                <input type="text" class="q-correct" required placeholder="Bonne réponse" value="${cAns}" style="border-color:#10b981; background:rgba(16,185,129,0.05); font-size:0.85rem; padding:8px;">
+                            </div>
+                            <div class="form-field" style="margin:0;">
+                                <input type="text" class="q-wrong1" required placeholder="Fausse réponse 1" value="${w1}" style="font-size:0.85rem; padding:8px;">
+                            </div>
+                            <div class="form-field" style="margin:0; grid-column:span 2;">
+                                <input type="text" class="q-wrong2" placeholder="Fausse réponse 2 (Optionnel)" value="${w2}" style="font-size:0.85rem; padding:8px;">
+                            </div>
+                        </div>
+                    `;
+                    container.appendChild(block);
+                }
+
+                function generateAIQuiz() {
+                    const container = document.getElementById('questionsContainer');
+                    container.innerHTML = ''; // Réinitialiser
+                    questionCount = 0;
+                    
+                    const iaQuestions = [
+                        { q: "Quelle méthode HTTP est utilisée pour créer une nouvelle ressource ?", c: "POST", w1: "GET", w2: "DELETE" },
+                        { q: "En PHP, quelle fonction permet d'établir une connexion sécurisée à la base de données ?", c: "PDO", w1: "mysql_connect", w2: "mysqli_fetch" },
+                        { q: "Que signifie le 'M' dans l'architecture MVC ?", c: "Modèle", w1: "Méthode", w2: "Module" },
+                        { q: "Quelle balise HTML est utilisée pour insérer du code JavaScript ?", c: "<script>", w1: "<js>", w2: "<code>" },
+                        { q: "Comment déclare-t-on une constante en JavaScript ES6 ?", c: "const", w1: "var", w2: "let" },
+                        { q: "Quel mot-clé SQL permet de filtrer les résultats d'une requête ?", c: "WHERE", w1: "FILTER", w2: "ORDER BY" },
+                        { q: "Quel port est utilisé par défaut pour le protocole HTTPS ?", c: "443", w1: "80", w2: "8080" },
+                        { q: "Que signifie CSS ?", c: "Cascading Style Sheets", w1: "Creative Style Sheets", w2: "Computer Style Sheets" },
+                        { q: "Lequel de ces langages s'exécute côté serveur ?", c: "PHP", w1: "CSS", w2: "HTML" },
+                        { q: "Que renvoie typeof null en JavaScript ?", c: "object", w1: "null", w2: "undefined" }
+                    ];
+                    
+                    iaQuestions.forEach(item => {
+                        addQuestionBlock(item.q, item.c, item.w1, item.w2);
+                    });
+                }
+
+                // Initialiser avec une question vide à l'ouverture si vide
+                document.getElementById('btnCreateCourse').addEventListener('click', () => {
+                    // C'est juste un hook. On laisse addQuestionBlock() faire son travail quand openEval est appelé.
+                });
+            </script>
         </div>
     </div>
 

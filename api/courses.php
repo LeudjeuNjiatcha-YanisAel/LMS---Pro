@@ -22,10 +22,12 @@ if ($method === 'GET') {
 
     // L'enseignant veut voir la liste de SES cours
     if ($action === 'list_teacher' && $role === 'teacher') {
-        // Préparation de la requête : On sélectionne les cours du prof, avec le nom de la catégorie
-        // et on compte le nombre de leçons grâce à un LEFT JOIN et un GROUP BY
+        // Préparation de la requête : On sélectionne les cours du prof, avec le nom de la catégorie,
+        // on compte le nombre de leçons grâce à un LEFT JOIN et un GROUP BY,
+        // et on compte le nombre d'inscriptions (étudiants) avec un sous-requête
         $stmt = $pdo->prepare("
-            SELECT c.id, c.title, cat.name as category_name, COUNT(l.id) as lesson_count
+            SELECT c.id, c.title, cat.name as category_name, COUNT(DISTINCT l.id) as lesson_count,
+            (SELECT COUNT(e.id) FROM enrollments e WHERE e.course_id = c.id) as student_count
             FROM courses c
             LEFT JOIN categories cat ON c.category_id = cat.id
             LEFT JOIN lessons l ON c.id = l.course_id
@@ -91,6 +93,21 @@ if ($method === 'GET') {
             "lesson" => $lesson
         ]);
     }
+    elseif ($action === 'get_teacher_results' && $role === 'teacher') {
+        $stmt = $pdo->prepare("
+            SELECT u.first_name, u.last_name, c.title as course_title, e.progress_percentage,
+                   IFNULL(cert.status, 'Non demandé') as cert_status
+            FROM enrollments e
+            JOIN users u ON e.student_id = u.id
+            JOIN courses c ON e.course_id = c.id
+            LEFT JOIN certificates cert ON cert.student_id = u.id AND cert.course_id = c.id
+            WHERE c.teacher_id = :teacher_id
+            ORDER BY e.enrolled_at DESC
+        ");
+        $stmt->execute(['teacher_id' => $user_id]);
+        $results = $stmt->fetchAll();
+        echo json_encode(["status" => "success", "results" => $results]);
+    }
     else {
         echo json_encode(["status" => "error", "message" => "Action invalide"]);
     }
@@ -124,37 +141,82 @@ elseif ($method === 'POST') {
             echo json_encode(["status" => "error", "message" => "Erreur BDD: " . $e->getMessage()]);
         }
     }
+    // L'étudiant met à jour sa progression (après chaque leçon)
+    elseif ($action === 'update_progress' && $role === 'student') {
+        $course_id = $_POST['course_id'] ?? null;
+        
+        if (!$course_id) {
+            echo json_encode(["status" => "error", "message" => "ID du cours manquant."]);
+            exit;
+        }
+
+        try {
+            // 1. Lire le total de leçons prévues pour ce cours
+            $stmtCount = $pdo->prepare("SELECT total_lessons FROM courses WHERE id = :course_id");
+            $stmtCount->execute(['course_id' => $course_id]);
+            $total_lessons = (int)$stmtCount->fetchColumn();
+
+            if ($total_lessons <= 0) {
+                $total_lessons = 1; // Sécurité
+            }
+            
+            $increment = 100 / $total_lessons;
+
+            // 2. Mettre à jour la progression en l'incrémentant
+            $stmtUpdate = $pdo->prepare("
+                UPDATE enrollments 
+                SET progress_percentage = LEAST(progress_percentage + :increment, 100) 
+                WHERE student_id = :student_id AND course_id = :course_id
+            ");
+            $stmtUpdate->execute([
+                'increment' => $increment,
+                'student_id' => $user_id,
+                'course_id' => $course_id
+            ]);
+            
+            // 3. Récupérer la nouvelle progression pour la renvoyer
+            $stmtCheck = $pdo->prepare("SELECT progress_percentage FROM enrollments WHERE student_id = :student_id AND course_id = :course_id");
+            $stmtCheck->execute(['student_id' => $user_id, 'course_id' => $course_id]);
+            $new_progress = $stmtCheck->fetchColumn();
+
+            echo json_encode(["status" => "success", "message" => "Progression mise à jour", "new_progress" => $new_progress]);
+        } catch(PDOException $e) {
+            echo json_encode(["status" => "error", "message" => "Erreur BDD: " . $e->getMessage()]);
+        }
+    }
     // L'enseignant veut CRÉER un nouveau cours
     elseif ($action === 'create' && $role === 'teacher') {
-        // On récupère et nettoie les données envoyées par le formulaire
         $title = trim($_POST['title'] ?? '');
-        $category_id = $_POST['category_id'] ?? 1; // 1 par défaut si vide
+        $category_id = $_POST['category_id'] ?? 1; 
         $description = trim($_POST['description'] ?? '');
+        $total_lessons = (int)($_POST['total_lessons'] ?? 1);
 
-        // Vérification de base
         if (empty($title) || empty($description)) {
             echo json_encode(["status" => "error", "message" => "Titre et description requis."]);
             exit;
         }
 
         try {
-            // Requête d'insertion sécurisée avec des paramètres nommés (:title, :cat, :teacher, :desc)
+            // Optionnel : s'assurer que la colonne total_lessons existe
+            try {
+                $pdo->exec("ALTER TABLE courses ADD COLUMN total_lessons INT DEFAULT 1");
+            } catch (PDOException $e) { }
+
             $stmt = $pdo->prepare("
-                INSERT INTO courses (title, category_id, teacher_id, description) 
-                VALUES (:title, :cat, :teacher, :desc)
+                INSERT INTO courses (title, category_id, teacher_id, description, total_lessons) 
+                VALUES (:title, :cat, :teacher, :desc, :total_lessons)
             ");
             
-            // Exécution de la requête en mappant les variables PHP aux paramètres SQL
             $stmt->execute([
                 'title' => $title,
                 'cat' => $category_id,
-                'teacher' => $user_id, // L'ID de session garantit que le prof crée SON cours
-                'desc' => $description
+                'teacher' => $user_id,
+                'desc' => $description,
+                'total_lessons' => $total_lessons
             ]);
 
             echo json_encode(["status" => "success", "message" => "Cours créé"]);
         } catch(PDOException $e) {
-            // En cas d'erreur SQL (ex: clé étrangère category_id inexistante)
             echo json_encode(["status" => "error", "message" => "Erreur BDD: " . $e->getMessage()]);
         }
     }

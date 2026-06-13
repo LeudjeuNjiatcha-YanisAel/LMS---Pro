@@ -55,23 +55,35 @@ elseif ($method === 'POST') {
 
         if ($content_type === 'pdf') {
             // Gérer l'upload du fichier PDF
-            if (isset($_FILES['content_file']) && $_FILES['content_file']['error'] === UPLOAD_ERR_OK) {
-                $ext = strtolower(pathinfo($_FILES['content_file']['name'], PATHINFO_EXTENSION));
-                if ($ext !== 'pdf') {
-                    echo json_encode(["status" => "error", "message" => "Seuls les fichiers PDF sont acceptés."]);
-                    exit;
-                }
-                $filename = uniqid('pdf_') . '.pdf';
-                $dest = 'uploads/pdf/' . $filename;
-                
-                if (move_uploaded_file($_FILES['content_file']['tmp_name'], $dest)) {
-                    $content_url = 'api/' . $dest; // URL relative pour le frontend
+            if (isset($_FILES['content_file'])) {
+                if ($_FILES['content_file']['error'] === UPLOAD_ERR_OK) {
+                    $ext = strtolower(pathinfo($_FILES['content_file']['name'], PATHINFO_EXTENSION));
+                    if ($ext !== 'pdf') {
+                        echo json_encode(["status" => "error", "message" => "Seuls les fichiers PDF sont acceptés."]);
+                        exit;
+                    }
+                    $filename = uniqid('pdf_') . '.pdf';
+                    
+                    // Utiliser le chemin absolu du serveur
+                    $upload_dir = __DIR__ . '/uploads/pdf/';
+                    if (!is_dir($upload_dir)) {
+                        mkdir($upload_dir, 0777, true);
+                    }
+                    
+                    $dest = $upload_dir . $filename;
+                    
+                    if (move_uploaded_file($_FILES['content_file']['tmp_name'], $dest)) {
+                        $content_url = 'api/uploads/pdf/' . $filename; // URL relative pour le frontend
+                    } else {
+                        echo json_encode(["status" => "error", "message" => "Échec de la sauvegarde du fichier sur le serveur."]);
+                        exit;
+                    }
                 } else {
-                    echo json_encode(["status" => "error", "message" => "Échec de l'upload du fichier."]);
+                    echo json_encode(["status" => "error", "message" => "Erreur d'upload code : " . $_FILES['content_file']['error']]);
                     exit;
                 }
             } else {
-                echo json_encode(["status" => "error", "message" => "Veuillez fournir un fichier PDF valide."]);
+                echo json_encode(["status" => "error", "message" => "Aucun fichier détecté. Vérifiez l'enctype du formulaire."]);
                 exit;
             }
         } else {
