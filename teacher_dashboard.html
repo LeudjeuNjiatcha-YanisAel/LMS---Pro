@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LMS Dashboard | Espace Enseignant</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/lms-s1.css?v=4">
+    <style>
+        /* ====== STYLES SPECIFIQUES ENSEIGNANT ====== */
+        
+        /* Corrige le body pour le dashboard (pas de centrage) */
+        body { display: block; height: 100vh; overflow: hidden; }
+        
+        /* --- TABLEAUX DE DONNÉES --- */
+        .table-container {
+            background-color: var(--bg-card);
+            border-radius: 20px;
+            padding: 25px;
+            border: 1px solid var(--border-color);
+            overflow-x: auto;
+            margin-top: 20px;
+        }
+        .data-table { width: 100%; border-collapse: collapse; }
+        .data-table th, .data-table td {
+            padding: 14px 18px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-main);
+            font-size: 0.95rem;
+        }
+        .data-table th {
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 1px;
+        }
+        .data-table tr { transition: background-color 0.2s; }
+        .data-table tr:hover td { background-color: rgba(99,102,241,0.05); }
+
+        /* --- BOUTONS D'ACTION --- */
+        .btn-action {
+            padding: 6px 14px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-right: 6px;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+        .btn-action:hover { transform: translateY(-1px); }
+        .btn-action.lesson { background: rgba(99,102,241,0.2); color: var(--primary); }
+        .btn-action.eval   { background: rgba(245,158,11,0.2); color: #f59e0b; }
+        .btn-action.delete  { background: rgba(239,68,68,0.15); color: #ef4444; }
+
+        /* --- FENÊTRES MODALES --- */
+        @keyframes modalSlideIn {
+            from { opacity: 0; transform: scale(0.9) translateY(20px); }
+            to   { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        .modal {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.7);
+            backdrop-filter: blur(4px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal.hidden { display: none; }
+        .modal-content {
+            background-color: var(--bg-card);
+            padding: 35px;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 520px;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 25px 60px rgba(0,0,0,0.4);
+            animation: modalSlideIn 0.3s ease-out;
+        }
+        .modal-content h2 {
+            margin-bottom: 25px;
+            font-size: 1.3rem;
+            color: var(--text-main);
+        }
+        .close-btn {
+            position: absolute;
+            top: 18px; right: 22px;
+            font-size: 22px;
+            cursor: pointer;
+            color: var(--text-muted);
+            transition: color 0.2s;
+            background: none; border: none;
+        }
+        .close-btn:hover { color: #ef4444; }
+
+        /* --- CHAMPS DE FORMULAIRE DANS MODALE --- */
+        .form-field { margin-bottom: 18px; }
+        .form-field label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+        .form-field input, .form-field select, .form-field textarea {
+            width: 100%;
+            padding: 13px 16px;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            font-size: 0.95rem;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+        .form-field input:focus, .form-field select:focus, .form-field textarea:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(99,102,241,0.15);
+        }
+        .form-field textarea { resize: vertical; min-height: 80px; }
+
+        .btn-modal-submit {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.3s;
+            box-shadow: 0 4px 15px rgba(99,102,241,0.3);
+            margin-top: 5px;
+        }
+        .btn-modal-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(99,102,241,0.45);
+        }
+
+        /* Bouton de couleur verte pour les évaluations */
+        .btn-modal-submit.green {
+            background: linear-gradient(135deg, #10b981, #059669);
+            box-shadow: 0 4px 15px rgba(16,185,129,0.3);
+        }
+        .btn-modal-submit.green:hover { box-shadow: 0 8px 25px rgba(16,185,129,0.45); }
+
+        /* --- SECTION LISTE DES LEÇONS DANS LA MODALE --- */
+        .lessons-list { margin-top: 15px; }
+        .lesson-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            background-color: var(--bg-dark);
+            border-radius: 10px;
+            margin-bottom: 8px;
+            border: 1px solid var(--border-color);
+        }
+        .lesson-row .lesson-label { display: flex; align-items: center; gap: 10px; }
+        .lesson-row .lesson-num {
+            width: 28px; height: 28px;
+            background: rgba(99,102,241,0.2);
+            color: var(--primary);
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 700; font-size: 0.85rem;
+        }
+        .lesson-row .lesson-title { font-weight: 500; font-size: 0.9rem; }
+        .lesson-row .lesson-type {
+            font-size: 0.75rem;
+            padding: 3px 10px;
+            border-radius: 6px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .lesson-row .lesson-type.pdf { background: rgba(239,68,68,0.15); color: #f87171; }
+        .lesson-row .lesson-type.video { background: rgba(99,102,241,0.15); color: #818cf8; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- ====== SIDEBAR ====== -->
+        <aside class="sidebar">
+            <div class="logo">
+                <div class="logo-icon"></div>
+                <h2>LMS Pro</h2>
+            </div>
+            <nav class="main-nav">
+                <a href="#" class="nav-item active">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9"></rect><rect x="14" y="3" width="7" height="5"></rect><rect x="14" y="12" width="7" height="9"></rect><rect x="3" y="16" width="7" height="5"></rect></svg>
+                    Mes Cours
+                </a>
+                <a href="#" class="nav-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                    Résultats
+                </a>
+            </nav>
+            <div class="sidebar-bottom">
+                <a href="#" id="logoutBtn" class="nav-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                    Déconnexion
+                </a>
+            </div>
+        </aside>
+
+        <!-- ====== CONTENU PRINCIPAL ====== -->
+        <main class="main-content">
+            <header class="top-header">
+                <div class="search">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    <input type="text" placeholder="Rechercher un cours...">
+                </div>
+                <h1 class="page-title">Espace Enseignant</h1>
+            </header>
+
+            <!-- Bannière de bienvenue -->
+            <section class="welcome-section">
+                <div class="welcome-text">
+                    <h2>Bienvenue, <span id="teacherName">Professeur</span> !</h2>
+                    <p>Gérez vos cours, ajoutez des leçons (PDF / Vidéo) et créez des évaluations.</p>
+                </div>
+                <button id="btnCreateCourse" class="btn-primary" style="margin-top:15px; position:relative; z-index:2; padding:12px 24px; border:none; border-radius:12px; background:white; color:var(--primary); font-weight:700; font-size:1rem; cursor:pointer; font-family:inherit;">+ Nouveau Cours</button>
+            </section>
+
+            <!-- Stats rapides -->
+            <div class="stats-container" id="teacherStats">
+                <div class="stat-card">
+                    <div class="stat-icon" style="background:rgba(99,102,241,0.2); color:var(--primary);">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                    </div>
+                    <div class="stat-details">
+                        <h3 id="statCourses">0</h3>
+                        <p>Cours</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="background:rgba(16,185,129,0.2); color:var(--accent-2);">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                    </div>
+                    <div class="stat-details">
+                        <h3 id="statLessons">0</h3>
+                        <p>Leçons</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section Gestion -->
+            <div class="section-header">
+                <h2>Vos cours</h2>
+            </div>
+
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Titre du cours</th>
+                            <th>Catégorie</th>
+                            <th>Leçons</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="teacherCoursesList">
+                        <tr><td colspan="4" style="text-align:center; color:var(--text-muted); padding:30px;">Chargement...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <!-- ====== MODALE : CREER UN COURS ====== -->
+    <div id="courseModal" class="modal hidden">
+        <div class="modal-content">
+            <button class="close-btn" data-close="courseModal">&times;</button>
+            <h2>Créer un nouveau cours</h2>
+            <form id="createCourseForm">
+                <div class="form-field">
+                    <label>Titre du cours</label>
+                    <input type="text" name="title" required placeholder="Ex: Programmation Web PHP">
+                </div>
+                <div class="form-field">
+                    <label>Catégorie</label>
+                    <select name="category_id">
+                        <option value="1">Informatique</option>
+                        <option value="2">Mathématiques</option>
+                        <option value="3">Sciences</option>
+                    </select>
+                </div>
+                <div class="form-field">
+                    <label>Description</label>
+                    <textarea name="description" required placeholder="Décrivez le contenu de ce cours..."></textarea>
+                </div>
+                <button type="submit" class="btn-modal-submit">Créer le cours</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ====== MODALE : AJOUTER DES LEÇONS ====== -->
+    <div id="lessonModal" class="modal hidden">
+        <div class="modal-content">
+            <button class="close-btn" data-close="lessonModal">&times;</button>
+            <h2>Gérer les leçons</h2>
+            <p style="color:var(--text-muted); margin-bottom:20px;" id="lessonCourseTitle">Cours : ...</p>
+            
+            <!-- Liste des leçons déjà ajoutées -->
+            <div class="lessons-list" id="existingLessons"></div>
+
+            <!-- Formulaire d'ajout -->
+            <form id="createLessonForm" style="margin-top:20px; padding-top:20px; border-top:1px solid var(--border-color);">
+                <input type="hidden" name="course_id" id="lesson_course_id">
+                <h3 style="font-size:1rem; margin-bottom:15px; color:var(--text-main);">Ajouter une leçon</h3>
+                <div class="form-field">
+                    <label>Titre de la leçon</label>
+                    <input type="text" name="title" required placeholder="Ex: Chapitre 1 - Introduction">
+                </div>
+                <div class="form-field">
+                    <label>Type de contenu</label>
+                    <select name="content_type" id="lessonContentType" onchange="toggleContentInput()">
+                        <option value="pdf">Fichier PDF (Upload)</option>
+                        <option value="video" selected>Vidéo (Lien YouTube/Vimeo)</option>
+                    </select>
+                </div>
+                <div class="form-field" id="urlInputGroup">
+                    <label>Lien de la Vidéo</label>
+                    <input type="url" name="content_url" id="contentUrlInput" required placeholder="https://youtube.com/...">
+                </div>
+                <div class="form-field hidden" id="fileInputGroup">
+                    <label>Fichier PDF</label>
+                    <input type="file" name="content_file" id="contentFileInput" accept="application/pdf">
+                </div>
+                <button type="submit" class="btn-modal-submit">+ Ajouter cette leçon</button>
+            </form>
+            
+            <script>
+                function toggleContentInput() {
+                    const type = document.getElementById('lessonContentType').value;
+                    const urlGrp = document.getElementById('urlInputGroup');
+                    const fileGrp = document.getElementById('fileInputGroup');
+                    const urlInput = document.getElementById('contentUrlInput');
+                    const fileInput = document.getElementById('contentFileInput');
+                    
+                    if(type === 'video') {
+                        urlGrp.classList.remove('hidden');
+                        fileGrp.classList.add('hidden');
+                        urlInput.setAttribute('required', 'true');
+                        fileInput.removeAttribute('required');
+                    } else {
+                        urlGrp.classList.add('hidden');
+                        fileGrp.classList.remove('hidden');
+                        urlInput.removeAttribute('required');
+                        fileInput.setAttribute('required', 'true');
+                    }
+                }
+            </script>
+        </div>
+    </div>
+
+    <!-- ====== MODALE : EVALUATION (QCM) ====== -->
+    <div id="evalModal" class="modal hidden">
+        <div class="modal-content">
+            <button class="close-btn" data-close="evalModal">&times;</button>
+            <h2>Créer une évaluation</h2>
+            <p style="color:var(--text-muted); margin-bottom:20px;" id="evalCourseTitle">Leçon : ...</p>
+            
+            <form id="createEvalForm">
+                <input type="hidden" name="lesson_id" id="eval_lesson_id">
+                <div class="form-field">
+                    <label>Titre de l'évaluation</label>
+                    <input type="text" name="eval_title" required placeholder="Ex: QCM Chapitre 1">
+                </div>
+                <div class="form-field">
+                    <label>Note requise pour valider (%)</label>
+                    <input type="number" name="required_score" min="1" max="100" value="100" required>
+                </div>
+                <div class="form-field">
+                    <label>Question</label>
+                    <textarea name="question_text" required placeholder="Posez votre question ici..." style="min-height: 80px;"></textarea>
+                </div>
+                
+                <h3 style="font-size:0.9rem; margin-top:20px; margin-bottom:10px; color:var(--accent-2);">Réponses proposées</h3>
+                <div class="form-field">
+                    <label style="color:#10b981;">Bonne réponse</label>
+                    <input type="text" name="correct_answer" required placeholder="La réponse correcte" style="border-color:#10b981; background:rgba(16,185,129,0.05);">
+                </div>
+                <div class="form-field">
+                    <label>Mauvaise réponse 1</label>
+                    <input type="text" name="wrong1" required placeholder="Fausse réponse">
+                </div>
+                <div class="form-field">
+                    <label>Mauvaise réponse 2 (Optionnel)</label>
+                    <input type="text" name="wrong2" placeholder="Fausse réponse">
+                </div>
+                <button type="submit" class="btn-modal-submit green" style="margin-top:10px;">Enregistrer l'évaluation</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="js/teacher.js"></script>
+</body>
+</html>

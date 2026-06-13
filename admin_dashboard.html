@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<!-- Déclare le document en HTML5 -->
+<html lang="fr">
+<!-- Balise racine en français -->
+<head>
+    <!-- Métadonnées et liens -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administration - LMS Pro</title>
+    <!-- Titre de la page administrateur -->
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Le corps de la page -->
+    <div class="dashboard-container">
+        <!-- Conteneur flexbox -->
+        <aside class="sidebar">
+            <!-- Barre de navigation latérale -->
+            <div class="logo">LMS Pro Admin</div>
+            <!-- Logo spécifique Admin -->
+            <nav>
+                <ul class="nav-links">
+                    <!-- Liens de navigation Admin -->
+                    <li><a href="#" class="active">Vue d'ensemble</a></li>
+                    <li><a href="#">Utilisateurs</a></li>
+                    <!-- Gestion des profs et étudiants -->
+                    <li><a href="#">Toutes les catégories</a></li>
+                    <!-- Gestion des catégories de cours -->
+                    <li><a href="#">Paramètres</a></li>
+                </ul>
+            </nav>
+            <button id="logoutBtn" class="btn-logout">Déconnexion</button>
+            <!-- Bouton de déconnexion -->
+        </aside>
+
+        <main class="main-content">
+            <!-- Zone principale -->
+            <header class="top-header">
+                <h2>Espace Administrateur, <span id="adminName">Admin</span></h2>
+                <!-- Nom injecté par JS -->
+                <button class="btn-primary">+ Nouvel Utilisateur</button>
+                <!-- Bouton pour créer un compte manuellement -->
+            </header>
+
+            <div class="stats-grid">
+                <!-- Grille des statistiques globales -->
+                <div class="stat-card">
+                    <h3>Total Utilisateurs</h3>
+                    <p class="stat-value">342</p>
+                    <!-- Chiffre statique pour l'instant -->
+                </div>
+                <div class="stat-card">
+                    <h3>Total Cours</h3>
+                    <p class="stat-value">45</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Certificats Délivrés</h3>
+                    <p class="stat-value">128</p>
+                </div>
+            </div>
+
+            <section class="courses-section">
+                <!-- Section avec le tableau des utilisateurs récents -->
+                <h3>Derniers utilisateurs inscrits</h3>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <!-- En-tête -->
+                            <tr>
+                                <th>Nom complet</th>
+                                <th>Email</th>
+                                <th>Rôle</th>
+                                <th>Date d'inscription</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersList">
+                            <!-- Corps du tableau, rempli en AJAX par la suite -->
+                            <tr>
+                                <td>Jean Dupont</td>
+                                <td>jean.dupont@email.com</td>
+                                <td><span style="background:var(--primary-color);color:white;padding:2px 8px;border-radius:10px;font-size:12px;">Étudiant</span></td>
+                                <td>Aujourd'hui</td>
+                                <td>
+                                    <button class="btn-action edit">Modifier</button>
+                                    <button class="btn-action delete">Bannir</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Script JS pour l'Admin -->
+    <script src="js/admin.js"></script>
+</body>
+</html>

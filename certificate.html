@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Certificat de Réussite</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            flex-direction: column;
+        }
+
+        .certificate-wrapper {
+            background: white;
+            width: 800px;
+            height: 600px;
+            padding: 20px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+            position: relative;
+        }
+
+        .certificate-inner {
+            border: 4px solid #1e293b;
+            height: 100%;
+            position: relative;
+            padding: 40px;
+            text-align: center;
+            background: url('data:image/svg+xml;utf8,<svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg"><defs><pattern id="dots" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1" fill="%23e2e8f0"/></pattern></defs><rect width="100%" height="100%" fill="url(%23dots)"/></svg>');
+        }
+
+        .certificate-inner::before {
+            content: '';
+            position: absolute;
+            top: 5px; left: 5px; right: 5px; bottom: 5px;
+            border: 1px solid #94a3b8;
+        }
+
+        .corner {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            border: 4px solid #4f46e5;
+        }
+        .corner-tl { top: 0; left: 0; border-right: none; border-bottom: none; }
+        .corner-tr { top: 0; right: 0; border-left: none; border-bottom: none; }
+        .corner-bl { bottom: 0; left: 0; border-right: none; border-top: none; }
+        .corner-br { bottom: 0; right: 0; border-left: none; border-top: none; }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 800;
+            color: #4f46e5;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .title {
+            font-family: 'Playfair Display', serif;
+            font-size: 48px;
+            color: #1e293b;
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+        }
+
+        .subtitle {
+            font-size: 16px;
+            color: #64748b;
+            margin-bottom: 40px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+        }
+
+        .student-name {
+            font-family: 'Playfair Display', serif;
+            font-size: 42px;
+            font-weight: 700;
+            color: #4f46e5;
+            margin-bottom: 20px;
+            font-style: italic;
+            border-bottom: 2px solid #e2e8f0;
+            display: inline-block;
+            padding: 0 40px 10px;
+        }
+
+        .course-text {
+            font-size: 18px;
+            color: #475569;
+            margin-bottom: 15px;
+        }
+
+        .course-name {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 50px;
+        }
+
+        .footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            padding: 0 50px;
+            margin-top: 40px;
+        }
+
+        .signature {
+            text-align: center;
+        }
+
+        .signature-line {
+            width: 200px;
+            border-bottom: 1px solid #1e293b;
+            margin-bottom: 10px;
+        }
+
+        .signature-text {
+            font-size: 14px;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .badge {
+            width: 80px;
+            height: 80px;
+            background: #4f46e5;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            box-shadow: 0 0 0 5px white, 0 0 0 7px #4f46e5;
+        }
+
+        .btn-download {
+            margin-top: 30px;
+            padding: 12px 24px;
+            background: #4f46e5;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-download:hover {
+            background: #4338ca;
+            transform: translateY(-2px);
+        }
+
+        @media print {
+            body { background: white; }
+            .btn-download { display: none; }
+            .certificate-wrapper { box-shadow: none; width: 100%; height: 100vh; padding: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="certificate-wrapper" id="certificate">
+        <div class="corner corner-tl"></div>
+        <div class="corner corner-tr"></div>
+        <div class="corner corner-bl"></div>
+        <div class="corner corner-br"></div>
+        
+        <div class="certificate-inner">
+            <div class="logo">LMS Pro</div>
+            <h1 class="title">Certificat de Réussite</h1>
+            <div class="subtitle">Ce document certifie que</div>
+            
+            <div class="student-name" id="certStudentName">Alexandre Dupont</div>
+            
+            <div class="course-text">a complété avec succès et validé toutes les évaluations du cours</div>
+            <div class="course-name" id="certCourseName">JavaScript Avancé & ES6+</div>
+            
+            <div class="footer">
+                <div class="signature">
+                    <div class="signature-line" style="font-family:'Playfair Display'; font-style:italic; font-size:24px; padding-bottom:5px; border-bottom:1px solid #1e293b;">John Doe</div>
+                    <div class="signature-text">Directeur Pédagogique</div>
+                </div>
+                
+                <div class="badge">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 15l-2 5l9-5l-9-5l2 5z"></path>
+                        <circle cx="12" cy="8" r="4"></circle>
+                    </svg>
+                </div>
+                
+                <div class="signature">
+                    <div class="signature-line" id="certDate" style="font-size:18px; padding-bottom:10px; border-bottom:1px solid #1e293b;">13 Juin 2026</div>
+                    <div class="signature-text">Date de délivrance</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <button class="btn-download" onclick="window.print()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        Télécharger en PDF
+    </button>
+
+    <script>
+        // Récupérer le nom de l'étudiant
+        const name = sessionStorage.getItem('userName') || 'Étudiant Modèle';
+        document.getElementById('certStudentName').textContent = name;
+        
+        // Date du jour
+        const today = new Date();
+        const options = { year: 'numeric', month: 'long', day: 'numeric' };
+        document.getElementById('certDate').textContent = today.toLocaleDateString('fr-FR', options);
+    </script>
+</body>
+</html>

@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LMS Pro - Connexion</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <style>
+        /* ====== VARIABLES ====== */
+        :root {
+            --bg-dark: #0f111a;        /* Fond principal ultra-sombre */
+            --bg-card: #1a1d2d;        /* Fond des cartes / surfaces */
+            --primary: #6366f1;        /* Couleur d'accent (indigo) */
+            --primary-hover: #4f46e5;  /* Version plus foncée au survol */
+            --text-main: #f8fafc;      /* Texte clair pour fond sombre */
+            --text-muted: #94a3b8;     /* Texte secondaire grisé */
+            --border-color: rgba(255, 255, 255, 0.08); /* Bordures subtiles */
+            --accent-pink: #ec4899;    /* Rose pour dégradés */
+            --accent-green: #10b981;   /* Vert pour succès */
+            --accent-red: #ef4444;     /* Rouge pour erreurs */
+        }
+
+        /* ====== RESET GLOBAL ====== */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Outfit', sans-serif;  /* Police moderne importée */
+            background-color: var(--bg-dark);   /* Fond ultra-sombre */
+            color: var(--text-main);            /* Texte clair */
+            min-height: 100vh;                  /* Au moins toute la hauteur de l'écran */
+            display: flex;                      /* Centre verticalement et horizontalement */
+            justify-content: center;
+            align-items: center;
+            /* Dégradé radial subtil dans le coin pour la profondeur */
+            background: radial-gradient(circle at 20% 50%, rgba(99,102,241,0.08), transparent 50%),
+                        radial-gradient(circle at 80% 20%, rgba(236,72,153,0.05), transparent 50%),
+                        var(--bg-dark);
+        }
+
+        /* ====== CONTENEUR PRINCIPAL ====== */
+        .login-wrapper {
+            display: flex;                /* Disposition en 2 colonnes */
+            width: 900px;                 /* Largeur fixe */
+            max-width: 95vw;              /* Ne dépasse jamais 95% de l'écran */
+            min-height: 550px;
+            border-radius: 24px;          /* Coins très arrondis */
+            overflow: hidden;             /* Cache tout ce qui dépasse */
+            box-shadow: 0 25px 60px rgba(0,0,0,0.5); /* Ombre portée profonde */
+            border: 1px solid var(--border-color);    /* Bordure subtile */
+        }
+
+        /* ====== PANNEAU GAUCHE (Décoratif) ====== */
+        .login-left {
+            flex: 1;                      /* Prend 50% de la largeur */
+            /* Dégradé principal indigo -> rose pour l'identité visuelle */
+            background: linear-gradient(135deg, var(--primary), var(--accent-pink));
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Cercle lumineux décoratif en arrière-plan */
+        .login-left::before {
+            content: '';
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+            top: -80px;
+            right: -80px;
+            filter: blur(40px);           /* Flou gaussien pour effet lumineux */
+        }
+
+        .login-left h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 15px;
+            position: relative;           /* Passe au-dessus du ::before */
+            z-index: 1;
+        }
+
+        .login-left p {
+            color: rgba(255,255,255,0.85);
+            font-size: 1.1rem;
+            text-align: center;
+            line-height: 1.6;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ====== PANNEAU DROIT (Formulaire) ====== */
+        .login-right {
+            flex: 1;
+            background-color: var(--bg-card);  /* Fond carte sombre */
+            padding: 50px 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .login-right h2 {
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .login-right .subtitle {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            margin-bottom: 30px;
+        }
+
+        /* ====== ZONE DE MESSAGE (succès / erreur) ====== */
+        /* Animation d'apparition avec rebond */
+        @keyframes popIn {
+            0%   { opacity: 0; transform: scale(0.8) translateY(-15px); }
+            70%  { transform: scale(1.03) translateY(3px); }
+            100% { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        .msg-box {
+            padding: 14px 18px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            text-align: center;
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        .msg-box.success {
+            background: rgba(16, 185, 129, 0.15);
+            color: #34d399;
+            border: 1px solid rgba(16,185,129,0.3);
+            box-shadow: 0 0 20px rgba(16,185,129,0.1);
+        }
+
+        .msg-box.error {
+            background: rgba(239, 68, 68, 0.12);
+            color: #fca5a5;
+            border: 1px solid rgba(239,68,68,0.25);
+        }
+
+        .hidden { display: none !important; }
+
+        /* ====== CHAMPS DU FORMULAIRE ====== */
+        .field { margin-bottom: 22px; }
+
+        .field label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+
+        .field input {
+            width: 100%;
+            padding: 14px 16px;
+            background-color: var(--bg-dark);     /* Fond plus sombre que la carte */
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            font-size: 1rem;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.3s, box-shadow 0.3s; /* Transitions douces */
+        }
+
+        /* Au focus : bordure colorée + halo lumineux */
+        .field input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(99,102,241,0.15);
+        }
+
+        /* ====== BOUTON DE CONNEXION ====== */
+        .btn-login {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.3s;
+            box-shadow: 0 4px 15px rgba(99,102,241,0.3);
+        }
+
+        .btn-login:hover {
+            transform: translateY(-2px);          /* Léger décalage vers le haut */
+            box-shadow: 0 8px 25px rgba(99,102,241,0.45); /* Halo plus fort */
+        }
+
+        .btn-login:active {
+            transform: scale(0.98);               /* Effet pression */
+        }
+
+        /* ====== LIEN D'INSCRIPTION ====== */
+        .bottom-link {
+            margin-top: 25px;
+            text-align: center;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .bottom-link a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .bottom-link a:hover {
+            text-decoration: underline;
+        }
+
+        /* ====== RESPONSIVE (Téléphone) ====== */
+        @media (max-width: 768px) {
+            .login-left { display: none; }         /* Cache le panneau décoratif */
+            .login-wrapper { border-radius: 16px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="login-wrapper">
+        <!-- Panneau décoratif gauche -->
+        <div class="login-left">
+            <h1>LMS Pro</h1>
+            <p>Votre plateforme d'apprentissage.<br>Apprenez, enseignez, évoluez.</p>
+        </div>
+
+        <!-- Formulaire de connexion -->
+        <div class="login-right">
+            <h2>Se connecter</h2>
+            <p class="subtitle">Entrez vos identifiants pour accéder à votre espace</p>
+
+            <!-- Zone de message (cachée par défaut) -->
+            <div id="message" class="msg-box hidden"></div>
+
+            <form id="loginForm">
+                <div class="field">
+                    <label for="email">Adresse Email</label>
+                    <input type="email" id="email" name="email" required placeholder="exemple@domaine.com">
+                </div>
+                <div class="field">
+                    <label for="password">Mot de passe</label>
+                    <input type="password" id="password" name="password" required placeholder="••••••••">
+                </div>
+                <button type="submit" class="btn-login">Se Connecter</button>
+            </form>
+
+            <div class="bottom-link">
+                Pas encore de compte ? <a href="register.html">Créer un compte</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

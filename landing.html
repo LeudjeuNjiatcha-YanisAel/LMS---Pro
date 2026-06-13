@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LMS Pro - Apprentissage Nouvelle Génération</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0f111a;
+            --bg-card: #1a1d2d;
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent-pink: #ec4899;
+            --accent-green: #10b981;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        /* Nav */
+        header {
+            padding: 20px 50px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 100;
+            background: rgba(15, 17, 26, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            background: linear-gradient(to right, var(--primary), var(--accent-pink));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .nav-links a {
+            color: var(--text-main);
+            text-decoration: none;
+            margin-left: 30px;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover { color: var(--primary); }
+
+        .btn-nav {
+            padding: 10px 24px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+            border-radius: 8px;
+            font-weight: 600;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .btn-nav:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(99, 102, 241, 0.4);
+            color: white !important;
+        }
+
+        /* Hero Section */
+        .hero {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 0 20px;
+            position: relative;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 20%; left: 50%;
+            transform: translateX(-50%);
+            width: 600px; height: 600px;
+            background: radial-gradient(circle, rgba(99,102,241,0.15) 0%, rgba(236,72,153,0.05) 50%, transparent 70%);
+            z-index: -1;
+            border-radius: 50%;
+            filter: blur(40px);
+            animation: pulse 4s infinite alternate;
+        }
+
+        @keyframes pulse {
+            0% { transform: translateX(-50%) scale(1); opacity: 0.8; }
+            100% { transform: translateX(-50%) scale(1.1); opacity: 1; }
+        }
+
+        .hero h1 {
+            font-size: 4rem;
+            font-weight: 800;
+            margin-bottom: 20px;
+            line-height: 1.1;
+            animation: fadeInUp 1s ease-out;
+        }
+
+        .hero h1 span {
+            background: linear-gradient(to right, var(--primary), var(--accent-pink));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            color: var(--text-muted);
+            max-width: 600px;
+            margin-bottom: 40px;
+            animation: fadeInUp 1s ease-out 0.2s backwards;
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 20px;
+            animation: fadeInUp 1s ease-out 0.4s backwards;
+        }
+
+        .btn-hero {
+            padding: 16px 32px;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+
+        .btn-hero.primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+            color: white;
+            box-shadow: 0 10px 20px rgba(99, 102, 241, 0.3);
+        }
+
+        .btn-hero.primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(99, 102, 241, 0.5);
+        }
+
+        .btn-hero.secondary {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-main);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-hero.secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-3px);
+        }
+
+        /* Features */
+        .features {
+            padding: 100px 50px;
+            background: var(--bg-card);
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .features h2 {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 60px;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .feature-card {
+            background: var(--bg-dark);
+            padding: 40px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+            border-color: rgba(99, 102, 241, 0.3);
+        }
+
+        .feature-icon {
+            width: 60px; height: 60px;
+            border-radius: 15px;
+            display: flex; justify-content: center; align-items: center;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+
+        .card-1 .feature-icon { background: rgba(99, 102, 241, 0.15); color: var(--primary); }
+        .card-2 .feature-icon { background: rgba(16, 185, 129, 0.15); color: var(--accent-green); }
+        .card-3 .feature-icon { background: rgba(236, 72, 153, 0.15); color: var(--accent-pink); }
+
+        .feature-card h3 { font-size: 1.3rem; margin-bottom: 10px; }
+        .feature-card p { color: var(--text-muted); line-height: 1.7; }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(40px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Section Statistiques */
+        .stats-section {
+            padding: 80px 50px;
+            text-align: center;
+        }
+
+        .stats-grid {
+            display: flex;
+            justify-content: center;
+            gap: 60px;
+            flex-wrap: wrap;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .stat-item h3 {
+            font-size: 3rem;
+            font-weight: 800;
+            background: linear-gradient(to right, var(--primary), var(--accent-pink));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .stat-item p {
+            color: var(--text-muted);
+            font-size: 1rem;
+            margin-top: 5px;
+        }
+
+        /* Section Appel à l'action */
+        .cta-section {
+            padding: 100px 50px;
+            text-align: center;
+            background: var(--bg-card);
+            border-top: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .cta-section h2 {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+        }
+
+        .cta-section p {
+            color: var(--text-muted);
+            max-width: 600px;
+            margin: 0 auto 40px;
+            font-size: 1.1rem;
+        }
+
+        /* Footer */
+        .site-footer {
+            padding: 40px 50px;
+            text-align: center;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo">LMS Pro</div>
+        <nav class="nav-links">
+            <a href="#">Accueil</a>
+            <a href="#features">Fonctionnalités</a>
+            <a href="#stats">Chiffres</a>
+            <a href="index.html" class="btn-nav">Se Connecter</a>
+        </nav>
+    </header>
+
+    <!-- HERO -->
+    <section class="hero">
+        <h1>Le savoir n'a plus de frontières<br>avec <span>LMS Pro</span></h1>
+        <p>Transformez votre manière d'apprendre et d'enseigner. Notre plateforme allie technologie de pointe et pédagogie innovante pour offrir une expérience d'apprentissage immersive, interactive et certifiante.</p>
+        <div class="cta-buttons">
+            <a href="register.html" class="btn-hero primary">Rejoindre la communauté</a>
+            <a href="index.html" class="btn-hero secondary">J'ai déjà un compte</a>
+        </div>
+    </section>
+
+    <!-- FONCTIONNALITÉS -->
+    <section class="features" id="features">
+        <h2>Une plateforme pensée pour l'excellence</h2>
+        <div class="features-grid">
+            <div class="feature-card card-1">
+                <div class="feature-icon">
+                    <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                </div>
+                <h3>Contenu Pédagogique d'Excellence</h3>
+                <p>Accédez à une bibliothèque de cours interactifs conçue par des experts. Chaque module est structuré en leçons vidéo haute définition et supports PDF complets, pour un apprentissage en immersion totale et adapté à votre rythme.</p>
+            </div>
+            <div class="feature-card card-2">
+                <div class="feature-icon">
+                    <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="7"></circle><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline></svg>
+                </div>
+                <h3>Évaluations & Certifications</h3>
+                <p>Validez rigoureusement vos acquis grâce à des QCM dynamiques intégrés à la fin de chaque chapitre. Dès que votre progression atteint 100%, votre certificat de réussite officiel est généré et prêt à être téléchargé.</p>
+            </div>
+            <div class="feature-card card-3">
+                <div class="feature-icon">
+                    <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                </div>
+                <h3>Espace Enseignant Puissant</h3>
+                <p>Un tableau de bord complet pour les créateurs de savoir. Construisez vos cours en plusieurs leçons (PDF ou Vidéo), intégrez des évaluations en quelques clics, et suivez la progression de vos étudiants en temps réel.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- STATISTIQUES -->
+    <section class="stats-section" id="stats">
+        <div class="stats-grid">
+            <div class="stat-item">
+                <h3>500+</h3>
+                <p>Étudiants actifs</p>
+            </div>
+            <div class="stat-item">
+                <h3>120+</h3>
+                <p>Cours disponibles</p>
+            </div>
+            <div class="stat-item">
+                <h3>98%</h3>
+                <p>Taux de satisfaction</p>
+            </div>
+            <div class="stat-item">
+                <h3>350+</h3>
+                <p>Certificats délivrés</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- APPEL A L'ACTION -->
+    <section class="cta-section">
+        <h2>Prêt à donner un nouvel élan à votre parcours ?</h2>
+        <p>Que vous soyez étudiant en quête de compétences ou enseignant passionné, LMS Pro est l'outil qu'il vous faut. Rejoignez des centaines d'apprenants qui ont déjà franchi le pas.</p>
+        <a href="register.html" class="btn-hero primary">Créer mon compte gratuitement</a>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="site-footer">
+        <p>LMS Pro &copy; 2026 &mdash; Tous droits réservés. Plateforme d'apprentissage nouvelle génération.</p>
+    </footer>
+
+</body>
+</html>
+

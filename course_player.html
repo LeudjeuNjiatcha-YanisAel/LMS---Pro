@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lecture du cours - LMS Pro</title>
+    <!-- On utilise le même style S1 pour l'interface -->
+    <link rel="stylesheet" href="css/lms-s1.css">
+    <style>
+        /* Styles spécifiques au lecteur de cours */
+        .player-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .media-viewer {
+            width: 100%;
+            height: 60vh;
+            background-color: #000;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .media-viewer iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .evaluation-section {
+            background-color: var(--bg-card);
+            padding: 30px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            margin-top: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .eval-question {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            color: var(--text-main);
+            font-weight: 600;
+        }
+
+        .eval-options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .eval-option {
+            background-color: var(--bg-dark);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .eval-option:hover {
+            border-color: var(--primary);
+            background-color: rgba(99, 102, 241, 0.1);
+        }
+
+        .eval-option input[type="radio"] {
+            transform: scale(1.2);
+            accent-color: var(--primary);
+        }
+
+        .btn-submit-eval {
+            margin-top: 20px;
+            background-color: var(--accent-2);
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .btn-submit-eval:hover {
+            background-color: #059669;
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Barre latérale -->
+        <aside class="sidebar">
+            <div class="logo">
+                <div class="logo-icon"></div>
+                <h2>LMS Pro</h2>
+            </div>
+            <nav class="main-nav">
+                <a href="student_dashboard.html" class="nav-item">
+                    <!-- Icone retour -->
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+                    Retour au Tableau de bord
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Contenu Principal -->
+        <main class="main-content">
+            <header class="top-header">
+                <h1 class="page-title" id="courseTitle">Chargement du cours...</h1>
+            </header>
+
+            <div class="player-container">
+                <!-- Zone d'affichage de la vidéo ou du PDF -->
+                <div class="media-viewer" id="mediaViewer">
+                    <!-- Sera rempli dynamiquement via JS -->
+                    <p style="color: var(--text-muted);">Chargement du lecteur...</p>
+                </div>
+
+                <!-- Zone d'évaluation obligatoire à la fin de la leçon -->
+                <div class="evaluation-section hidden" id="evaluationSection">
+                    <h2>Évaluation de fin de leçon</h2>
+                    <p style="color:var(--text-muted); margin-bottom:20px;">Répondez à cette question pour valider votre progression.</p>
+                    
+                    <form id="evaluationForm">
+                        <input type="hidden" id="lessonId" name="lesson_id">
+                        <div class="eval-question" id="evalQuestionText">Quelle est la fonction principale... ?</div>
+                        
+                        <div class="eval-options" id="evalOptionsContainer">
+                            <!-- Les boutons radio seront injectés ici -->
+                        </div>
+                        
+                        <button type="submit" class="btn-submit-eval">Valider ma réponse</button>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Script de gestion du lecteur vidéo/pdf et de l'évaluation -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="js/course_player.js"></script>
+</body>
+</html>
