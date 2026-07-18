@@ -336,6 +336,65 @@
                 border-color: transparent;
             }
         }
+
+        /* ====== RESPONSIVE (Téléphone & Tablette) ====== */
+        @media (max-width: 768px) {
+            header {
+                padding: 15px 20px;
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 10px;
+            }
+            .nav-links {
+                display: none; /* Hide on mobile for simplicity, or change to row */
+            }
+            .btn-nav {
+                padding: 8px 16px;
+                font-size: 0.9rem;
+            }
+            .hero {
+                padding: 0 15px;
+            }
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+            .hero p {
+                font-size: 1rem;
+            }
+            .cta-buttons {
+                flex-direction: column;
+                width: 100%;
+                gap: 15px;
+            }
+            .btn-hero {
+                width: 100%;
+            }
+            .features {
+                padding: 60px 20px;
+            }
+            .features h2 {
+                font-size: 2rem;
+                margin-bottom: 40px;
+            }
+            .stats-section {
+                padding: 60px 20px;
+            }
+            .stats-grid {
+                gap: 30px;
+            }
+            .stat-item h3 {
+                font-size: 2.2rem;
+            }
+            .cta-section {
+                padding: 60px 20px;
+            }
+            .cta-section h2 {
+                font-size: 2rem;
+            }
+            .site-footer {
+                padding: 30px 20px;
+            }
+        }
     </style>
 </head>
 

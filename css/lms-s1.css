@@ -454,8 +454,24 @@ body {
         z-index: 999; display: none;
     }
     .sidebar-overlay.open { display: block; }
+
+    /* Tables, Modals, Forms Responsive */
+    .table-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .modal-content { width: 95% !important; padding: 20px !important; margin: 10px; max-height: 90vh; }
+    div[style*="display:flex"].form-field, div[style*="display: flex"].form-field {
+        flex-direction: column !important;
+        gap: 10px !important;
+    }
+    div[style*="flex:1"], div[style*="flex: 1"] { width: 100%; }
+    
+    .course-tabs { flex-wrap: wrap; gap: 0.5rem; }
+    .top-header { flex-wrap: wrap; gap: 10px; }
 }
 @media (max-width: 480px) {
     .stats-container { grid-template-columns: 1fr; }
     .courses-grid { grid-template-columns: 1fr; }
+    .top-header { flex-direction: column; align-items: flex-start; }
+    .welcome-section { padding: 1.5rem; }
+    .welcome-text h2 { font-size: 1.3rem; }
+    .modal-content { padding: 15px !important; }
 }

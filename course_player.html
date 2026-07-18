@@ -860,6 +860,24 @@
         }
         .notes-save-btn:hover { opacity: 0.85; transform: translateY(-1px); }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        /* ====== RESPONSIVE (Mobiles) ====== */
+        @media (max-width: 900px) {
+            .container { flex-direction: column; overflow-y: auto; }
+            .sidebar { width: 100%; height: auto; border-right: none; border-bottom: 1px solid var(--glass-border); position: relative; }
+            .main-content { padding: 20px 15px; }
+            .player-container { flex-direction: column; }
+            .video-player { height: 300px; }
+            .content-header { flex-direction: column; align-items: flex-start; gap: 10px; }
+            .content-meta { flex-wrap: wrap; }
+            .top-bar { padding: 15px; flex-direction: column; gap: 15px; }
+        }
+        @media (max-width: 600px) {
+            .video-player { height: 220px; }
+            .lesson-title { font-size: 1.5rem; }
+            .btn-action { width: 100%; margin-bottom: 10px; justify-content: center; }
+            .header-actions { display: flex; flex-direction: column; width: 100%; gap: 10px; }
+            .sidebar-bottom { padding: 15px; }
+        }
     </style>
 </head>
 <body>

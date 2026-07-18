@@ -227,8 +227,11 @@
 
         /* ====== RESPONSIVE (Téléphone) ====== */
         @media (max-width: 768px) {
+            body { padding: 15px; }
             .login-left { display: none; }         /* Cache le panneau décoratif */
-            .login-wrapper { border-radius: 16px; }
+            .login-wrapper { border-radius: 16px; min-height: auto; width: 100%; max-width: 100%; }
+            .login-right { padding: 35px 25px; }
+            .login-right h2 { font-size: 1.5rem; }
         }
     </style>
 </head>
