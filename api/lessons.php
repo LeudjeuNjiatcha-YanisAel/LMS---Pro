@@ -1,8 +1,11 @@
 <?php
-session_start();
-require 'db.php';
-header('Content-Type: application/json');
+// api/lessons.php : Gère le CRUD des leçons d'un cours (Ajout de PDF, Vidéos, et lecture)
 
+session_start(); // Démarre la session utilisateur
+require 'db.php'; // Connexion à la base de données
+header('Content-Type: application/json'); // Format de réponse JSON
+
+// Vérification de sécurité : l'utilisateur doit être connecté
 if (!isset($_SESSION['user_id'])) {
     echo json_encode(["status" => "error", "message" => "Non autorisé"]);
     exit;
@@ -53,45 +56,39 @@ elseif ($method === 'POST') {
             exit;
         }
 
-        if ($content_type === 'pdf') {
-            // Gérer l'upload du fichier PDF
-            if (isset($_FILES['content_file'])) {
-                if ($_FILES['content_file']['error'] === UPLOAD_ERR_OK) {
-                    $ext = strtolower(pathinfo($_FILES['content_file']['name'], PATHINFO_EXTENSION));
-                    if ($ext !== 'pdf') {
-                        echo json_encode(["status" => "error", "message" => "Seuls les fichiers PDF sont acceptés."]);
-                        exit;
-                    }
-                    $filename = uniqid('pdf_') . '.pdf';
-                    
-                    // Utiliser le chemin absolu du serveur
-                    $upload_dir = __DIR__ . '/uploads/pdf/';
-                    if (!is_dir($upload_dir)) {
-                        mkdir($upload_dir, 0777, true);
-                    }
-                    
-                    $dest = $upload_dir . $filename;
-                    
-                    if (move_uploaded_file($_FILES['content_file']['tmp_name'], $dest)) {
-                        $content_url = 'api/uploads/pdf/' . $filename; // URL relative pour le frontend
-                    } else {
-                        echo json_encode(["status" => "error", "message" => "Échec de la sauvegarde du fichier sur le serveur."]);
-                        exit;
-                    }
+        if ($content_type === 'pdf' || $content_type === 'video') {
+            if (isset($_FILES['content_file']) && $_FILES['content_file']['error'] === UPLOAD_ERR_OK) {
+                $ext = strtolower(pathinfo($_FILES['content_file']['name'], PATHINFO_EXTENSION));
+                $allowed_exts = $content_type === 'pdf' ? ['pdf'] : ['mp4', 'webm', 'ogg'];
+                
+                if (!in_array($ext, $allowed_exts)) {
+                    echo json_encode(["status" => "error", "message" => "Format de fichier non supporté."]);
+                    exit;
+                }
+                
+                $filename = uniqid($content_type . '_') . '.' . $ext;
+                $upload_dir = __DIR__ . '/uploads/' . $content_type . '/';
+                if (!is_dir($upload_dir)) mkdir($upload_dir, 0777, true);
+                
+                $dest = $upload_dir . $filename;
+                
+                if (move_uploaded_file($_FILES['content_file']['tmp_name'], $dest)) {
+                    $content_url = 'api/uploads/' . $content_type . '/' . $filename;
                 } else {
-                    echo json_encode(["status" => "error", "message" => "Erreur d'upload code : " . $_FILES['content_file']['error']]);
+                    echo json_encode(["status" => "error", "message" => "Échec de la sauvegarde du fichier."]);
                     exit;
                 }
             } else {
-                echo json_encode(["status" => "error", "message" => "Aucun fichier détecté. Vérifiez l'enctype du formulaire."]);
-                exit;
-            }
-        } else {
-            // Vidéo: On attend un lien
-            $content_url = trim($_POST['content_url'] ?? '');
-            if (empty($content_url)) {
-                echo json_encode(["status" => "error", "message" => "Veuillez fournir une URL vidéo."]);
-                exit;
+                if ($content_type === 'pdf') {
+                    echo json_encode(["status" => "error", "message" => "Aucun fichier PDF fourni."]);
+                    exit;
+                } else {
+                    $content_url = trim($_POST['content_url'] ?? '');
+                    if (empty($content_url)) {
+                        echo json_encode(["status" => "error", "message" => "Veuillez fournir une URL vidéo ou uploader un fichier."]);
+                        exit;
+                    }
+                }
             }
         }
 
@@ -113,6 +110,28 @@ elseif ($method === 'POST') {
             echo json_encode(["status" => "success", "message" => "Leçon créée"]);
         } catch(PDOException $e) {
             echo json_encode(["status" => "error", "message" => "Erreur BDD: " . $e->getMessage()]);
+        }
+    } elseif ($action === 'delete' && $role === 'teacher') {
+        $lesson_id = $_POST['lesson_id'] ?? null;
+        if (!$lesson_id) {
+            echo json_encode(["status" => "error", "message" => "ID leçon manquant."]);
+            exit;
+        }
+        
+        // Vérifier que la leçon appartient bien à un cours de ce prof
+        $stmtCheck = $pdo->prepare("SELECT l.id FROM lessons l JOIN courses c ON l.course_id = c.id WHERE l.id = :lesson_id AND c.teacher_id = :teacher_id");
+        $stmtCheck->execute(['lesson_id' => $lesson_id, 'teacher_id' => $user_id]);
+        if ($stmtCheck->rowCount() === 0) {
+            echo json_encode(["status" => "error", "message" => "Action non autorisée."]);
+            exit;
+        }
+
+        try {
+            $stmtDel = $pdo->prepare("DELETE FROM lessons WHERE id = :lesson_id");
+            $stmtDel->execute(['lesson_id' => $lesson_id]);
+            echo json_encode(["status" => "success", "message" => "Leçon supprimée"]);
+        } catch(PDOException $e) {
+            echo json_encode(["status" => "error", "message" => "Erreur lors de la suppression."]);
         }
     }
 }

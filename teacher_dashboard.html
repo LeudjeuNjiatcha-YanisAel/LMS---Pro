@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,11 +10,13 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/lms-s1.css?v=4">
     <style>
-        /* ====== STYLES SPECIFIQUES ENSEIGNANT ====== */
-        
         /* Corrige le body pour le dashboard (pas de centrage) */
-        body { display: block; height: 100vh; overflow: hidden; }
-        
+        body {
+            display: block;
+            height: 100vh;
+            overflow: hidden;
+        }
+
         /* --- TABLEAUX DE DONNÉES --- */
         .table-container {
             background-color: var(--bg-card);
@@ -23,14 +26,21 @@
             overflow-x: auto;
             margin-top: 20px;
         }
-        .data-table { width: 100%; border-collapse: collapse; }
-        .data-table th, .data-table td {
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .data-table th,
+        .data-table td {
             padding: 14px 18px;
             text-align: left;
             border-bottom: 1px solid var(--border-color);
             color: var(--text-main);
             font-size: 0.95rem;
         }
+
         .data-table th {
             font-weight: 600;
             color: var(--text-muted);
@@ -38,8 +48,14 @@
             font-size: 0.75rem;
             letter-spacing: 1px;
         }
-        .data-table tr { transition: background-color 0.2s; }
-        .data-table tr:hover td { background-color: rgba(99,102,241,0.05); }
+
+        .data-table tr {
+            transition: background-color 0.2s;
+        }
+
+        .data-table tr:hover td {
+            background-color: rgba(99, 102, 241, 0.05);
+        }
 
         /* --- BOUTONS D'ACTION --- */
         .btn-action {
@@ -53,27 +69,57 @@
             transition: all 0.2s;
             font-family: inherit;
         }
-        .btn-action:hover { transform: translateY(-1px); }
-        .btn-action.lesson { background: rgba(99,102,241,0.2); color: var(--primary); }
-        .btn-action.eval   { background: rgba(245,158,11,0.2); color: #f59e0b; }
-        .btn-action.delete  { background: rgba(239,68,68,0.15); color: #ef4444; }
+
+        .btn-action:hover {
+            transform: translateY(-1px);
+        }
+
+        .btn-action.lesson {
+            background: rgba(99, 102, 241, 0.2);
+            color: var(--primary);
+        }
+
+        .btn-action.eval {
+            background: rgba(245, 158, 11, 0.2);
+            color: #f59e0b;
+        }
+
+        .btn-action.delete {
+            background: rgba(239, 68, 68, 0.15);
+            color: #ef4444;
+        }
 
         /* --- FENÊTRES MODALES --- */
         @keyframes modalSlideIn {
-            from { opacity: 0; transform: scale(0.9) translateY(20px); }
-            to   { opacity: 1; transform: scale(1) translateY(0); }
+            from {
+                opacity: 0;
+                transform: scale(0.9) translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
         }
+
         .modal {
             position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background-color: rgba(0,0,0,0.7);
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
             backdrop-filter: blur(4px);
             display: flex;
             justify-content: center;
             align-items: center;
             z-index: 1000;
         }
-        .modal.hidden { display: none; }
+
+        .modal.hidden {
+            display: none;
+        }
+
         .modal-content {
             background-color: var(--bg-card);
             padding: 35px;
@@ -84,27 +130,37 @@
             overflow-y: auto;
             position: relative;
             border: 1px solid var(--border-color);
-            box-shadow: 0 25px 60px rgba(0,0,0,0.4);
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.4);
             animation: modalSlideIn 0.3s ease-out;
         }
+
         .modal-content h2 {
             margin-bottom: 25px;
             font-size: 1.3rem;
             color: var(--text-main);
         }
+
         .close-btn {
             position: absolute;
-            top: 18px; right: 22px;
+            top: 18px;
+            right: 22px;
             font-size: 22px;
             cursor: pointer;
             color: var(--text-muted);
             transition: color 0.2s;
-            background: none; border: none;
+            background: none;
+            border: none;
         }
-        .close-btn:hover { color: #ef4444; }
+
+        .close-btn:hover {
+            color: #ef4444;
+        }
 
         /* --- CHAMPS DE FORMULAIRE DANS MODALE --- */
-        .form-field { margin-bottom: 18px; }
+        .form-field {
+            margin-bottom: 18px;
+        }
+
         .form-field label {
             display: block;
             font-size: 0.85rem;
@@ -112,7 +168,10 @@
             color: var(--text-muted);
             margin-bottom: 8px;
         }
-        .form-field input, .form-field select, .form-field textarea {
+
+        .form-field input,
+        .form-field select,
+        .form-field textarea {
             width: 100%;
             padding: 13px 16px;
             background-color: var(--bg-dark);
@@ -124,11 +183,18 @@
             outline: none;
             transition: border-color 0.3s, box-shadow 0.3s;
         }
-        .form-field input:focus, .form-field select:focus, .form-field textarea:focus {
+
+        .form-field input:focus,
+        .form-field select:focus,
+        .form-field textarea:focus {
             border-color: var(--primary);
-            box-shadow: 0 0 0 4px rgba(99,102,241,0.15);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
         }
-        .form-field textarea { resize: vertical; min-height: 80px; }
+
+        .form-field textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
 
         .btn-modal-submit {
             width: 100%;
@@ -142,23 +208,30 @@
             font-family: inherit;
             cursor: pointer;
             transition: transform 0.2s, box-shadow 0.3s;
-            box-shadow: 0 4px 15px rgba(99,102,241,0.3);
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
             margin-top: 5px;
         }
+
         .btn-modal-submit:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(99,102,241,0.45);
+            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.45);
         }
 
         /* Bouton de couleur verte pour les évaluations */
         .btn-modal-submit.green {
             background: linear-gradient(135deg, #10b981, #059669);
-            box-shadow: 0 4px 15px rgba(16,185,129,0.3);
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
         }
-        .btn-modal-submit.green:hover { box-shadow: 0 8px 25px rgba(16,185,129,0.45); }
+
+        .btn-modal-submit.green:hover {
+            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.45);
+        }
 
         /* --- SECTION LISTE DES LEÇONS DANS LA MODALE --- */
-        .lessons-list { margin-top: 15px; }
+        .lessons-list {
+            margin-top: 15px;
+        }
+
         .lesson-row {
             display: flex;
             align-items: center;
@@ -169,16 +242,31 @@
             margin-bottom: 8px;
             border: 1px solid var(--border-color);
         }
-        .lesson-row .lesson-label { display: flex; align-items: center; gap: 10px; }
+
+        .lesson-row .lesson-label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
         .lesson-row .lesson-num {
-            width: 28px; height: 28px;
-            background: rgba(99,102,241,0.2);
+            width: 28px;
+            height: 28px;
+            background: rgba(99, 102, 241, 0.2);
             color: var(--primary);
             border-radius: 8px;
-            display: flex; align-items: center; justify-content: center;
-            font-weight: 700; font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.85rem;
         }
-        .lesson-row .lesson-title { font-weight: 500; font-size: 0.9rem; }
+
+        .lesson-row .lesson-title {
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
         .lesson-row .lesson-type {
             font-size: 0.75rem;
             padding: 3px 10px;
@@ -186,31 +274,80 @@
             font-weight: 600;
             text-transform: uppercase;
         }
-        .lesson-row .lesson-type.pdf { background: rgba(239,68,68,0.15); color: #f87171; }
-        .lesson-row .lesson-type.video { background: rgba(99,102,241,0.15); color: #818cf8; }
+
+        .lesson-row .lesson-type.pdf {
+            background: rgba(239, 68, 68, 0.15);
+            color: #f87171;
+        }
+
+        .lesson-row .lesson-type.video {
+            background: rgba(99, 102, 241, 0.15);
+            color: #818cf8;
+        }
     </style>
 </head>
+
 <body>
     <div class="container">
-        <!-- ====== SIDEBAR ====== -->
+        <!-- ====== SIDEBAR PREMIUM ====== -->
         <aside class="sidebar">
             <div class="logo">
-                <div class="logo-icon"></div>
-                <h2>LMS Pro</h2>
+                <div class="logo-icon"><i class="fa-solid fa-graduation-cap"></i></div>
+                <h2 style="background: linear-gradient(to right, #818cf8, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Learn Hub</h2>
             </div>
             <nav class="main-nav">
                 <a href="#" id="tabTeacherCourses" class="nav-item active">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9"></rect><rect x="14" y="3" width="7" height="5"></rect><rect x="14" y="12" width="7" height="9"></rect><rect x="3" y="16" width="7" height="5"></rect></svg>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="7" height="9"></rect>
+                        <rect x="14" y="3" width="7" height="5"></rect>
+                        <rect x="14" y="12" width="7" height="9"></rect>
+                        <rect x="3" y="16" width="7" height="5"></rect>
+                    </svg>
                     Mes Cours
                 </a>
                 <a href="#" id="tabTeacherResults" class="nav-item">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                    </svg>
                     Résultats
                 </a>
             </nav>
+            <nav class="main-nav" style="margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 15px;">
+                <a href="#" id="tabTeacherEvaluations" class="nav-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                    </svg>
+                    Prog. Évaluations
+                </a>
+                <a href="#" id="tabTeacherLive" class="nav-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
+                    </svg>
+                    Live (Sessions)
+                </a>
+                <a href="#" id="tabTeacherStudents" class="nav-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                    Mes Étudiants
+                </a>
+            </nav>
             <div class="sidebar-bottom">
-                <a href="#" id="logoutBtn" class="nav-item">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                <div class="sidebar-user-badge"
+                    style="display:flex; align-items:center; gap:12px; padding:14px 12px; border-radius:14px; background:linear-gradient(135deg, rgba(99,102,241,0.08), rgba(236,72,153,0.06)); border:1px solid rgba(99,102,241,0.1); margin-bottom:8px;">
+                    <div id="teacherAvatarInitial"
+                        style="width:38px; height:38px; border-radius:50%; background:linear-gradient(135deg, var(--primary), var(--accent-1)); display:flex; align-items:center; justify-content:center; color:white; font-weight:700; font-size:0.95rem; flex-shrink:0; box-shadow:0 0 16px rgba(99,102,241,0.3);">
+                        P</div>
+                    <div style="line-height:1.2;">
+                        <h4 id="sidebarTeacherName" style="font-size:0.88rem; font-weight:600;">Professeur</h4>
+                        <p style="font-size:0.72rem; color:var(--text-muted);">Enseignant</p>
+                    </div>
+                </div>
+                <a href="#" id="logoutBtn" class="nav-item" style="color:#ef4444;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                        <polyline points="16 17 21 12 16 7"></polyline>
+                        <line x1="21" y1="12" x2="9" y2="12"></line>
+                    </svg>
                     Déconnexion
                 </a>
             </div>
@@ -218,51 +355,98 @@
 
         <!-- ====== CONTENU PRINCIPAL ====== -->
         <main class="main-content">
-            <header class="top-header">
-                <div class="search">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                    <input type="text" placeholder="Rechercher un cours...">
-                </div>
+            <header class="top-header" style="display:flex; align-items:center; gap:15px;">
+                <button id="mobileMenuBtn" class="mobile-menu-btn" aria-label="Menu"
+                    style="background:none; border:none; color:var(--text-main); font-size:1.5rem; cursor:pointer; display:none;">
+                    <svg viewBox="0 0 24 24" width="28" height="28" stroke="currentColor" stroke-width="2" fill="none"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="3" y1="12" x2="21" y2="12"></line>
+                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                        <line x1="3" y1="18" x2="21" y2="18"></line>
+                    </svg>
+                </button>
                 <h1 class="page-title">Espace Enseignant</h1>
             </header>
 
             <div id="sectionCourses" class="page-section">
-                <!-- Bannière de bienvenue -->
-                <section class="welcome-section">
-                    <div class="welcome-text">
-                        <h2>Bienvenue, <span id="teacherName">Professeur</span> !</h2>
-                        <p>Gérez vos cours, ajoutez des leçons (PDF / Vidéo) et créez des évaluations.</p>
+                <!-- Hero Banner Premium -->
+                <div class="hero-banner"
+                    style="background:linear-gradient(135deg, #4f46e5 0%, #7c3aed 35%, #a855f7 65%, #ec4899 100%); border-radius:22px; padding:2.5rem 2.75rem; margin-bottom:2rem; position:relative; overflow:hidden; box-shadow:0 16px 48px rgba(99,102,241,0.22), inset 0 1px 0 rgba(255,255,255,0.1);">
+                    <div style="position:relative; z-index:2;">
+                        <h2
+                            style="font-size:1.85rem; font-weight:800; color:white; margin-bottom:0.5rem; line-height:1.2; letter-spacing:-0.5px;">
+                            Bienvenue, <span id="teacherName"
+                                style="font-weight:400; color:rgba(255,255,255,0.85);">Professeur</span> !</h2>
+                        <p style="color:rgba(255,255,255,0.8); font-size:1rem; max-width:480px;">Créez de nouveaux
+                            cours, ajoutez des leçons (vidéo ou PDF) et évaluez vos étudiants pour partager votre
+                            savoir.</p>
+                        <button id="btnCreateCourse" class="btn-primary"
+                            style="margin-top:1.25rem; display:inline-flex; align-items:center; gap:8px; padding:12px 24px; border:none; border-radius:12px; background:white; color:var(--primary); font-weight:700; font-size:0.95rem; cursor:pointer; font-family:inherit; box-shadow:0 8px 20px rgba(0,0,0,0.15);">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2.5" stroke-linecap="round">
+                                <line x1="12" y1="5" x2="12" y2="19"></line>
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                            </svg>
+                            Créer un nouveau cours
+                        </button>
                     </div>
-                    <button id="btnCreateCourse" class="btn-primary" style="margin-top:15px; position:relative; z-index:2; padding:12px 24px; border:none; border-radius:12px; background:white; color:var(--primary); font-weight:700; font-size:1rem; cursor:pointer; font-family:inherit;">+ Nouveau Cours</button>
-                </section>
+                </div>
 
-                <!-- Stats rapides -->
-                <div class="stats-container" id="teacherStats">
-                    <div class="stat-card">
-                        <div class="stat-icon" style="background:rgba(99,102,241,0.2); color:var(--primary);">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                <!-- Stats rapides Premium -->
+                <div class="stats-container" id="teacherStats"
+                    style="display:grid; grid-template-columns:repeat(3, 1fr); gap:1.25rem; margin-bottom:2rem;">
+                    <div class="stat-card-premium"
+                        style="background:linear-gradient(160deg, rgba(18,20,42,0.92), rgba(10,12,25,0.96)); border:1px solid var(--border-color); border-radius:20px; padding:1.5rem; display:flex; align-items:center; gap:1.15rem; transition:transform 0.4s, box-shadow 0.4s;">
+                        <div
+                            style="width:52px; height:52px; border-radius:16px; background:rgba(99,102,241,0.12); color:var(--primary); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                            </svg>
                         </div>
-                        <div class="stat-details">
-                            <h3 id="statCourses">0</h3>
-                            <p>Cours</p>
+                        <div>
+                            <h3 id="statCourses"
+                                style="font-size:1.75rem; font-weight:800; line-height:1.1; background:linear-gradient(135deg, var(--text-main), rgba(255,255,255,0.7)); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">
+                                0</h3>
+                            <p style="color:var(--text-muted); font-size:0.82rem; margin-top:3px;">Cours créés</p>
                         </div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-icon" style="background:rgba(16,185,129,0.2); color:var(--accent-2);">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                    <div class="stat-card-premium"
+                        style="background:linear-gradient(160deg, rgba(18,20,42,0.92), rgba(10,12,25,0.96)); border:1px solid var(--border-color); border-radius:20px; padding:1.5rem; display:flex; align-items:center; gap:1.15rem; transition:transform 0.4s, box-shadow 0.4s;">
+                        <div
+                            style="width:52px; height:52px; border-radius:16px; background:rgba(16,185,129,0.12); color:var(--accent-2); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                            </svg>
                         </div>
-                        <div class="stat-details">
-                            <h3 id="statLessons">0</h3>
-                            <p>Leçons</p>
+                        <div>
+                            <h3 id="statLessons"
+                                style="font-size:1.75rem; font-weight:800; line-height:1.1; background:linear-gradient(135deg, var(--text-main), rgba(255,255,255,0.7)); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">
+                                0</h3>
+                            <p style="color:var(--text-muted); font-size:0.82rem; margin-top:3px;">Leçons publiées</p>
                         </div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-icon" style="background:rgba(245,158,11,0.2); color:var(--accent-3);">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                    <div class="stat-card-premium"
+                        style="background:linear-gradient(160deg, rgba(18,20,42,0.92), rgba(10,12,25,0.96)); border:1px solid var(--border-color); border-radius:20px; padding:1.5rem; display:flex; align-items:center; gap:1.15rem; transition:transform 0.4s, box-shadow 0.4s;">
+                        <div
+                            style="width:52px; height:52px; border-radius:16px; background:rgba(245,158,11,0.12); color:var(--accent-3); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="9" cy="7" r="4"></circle>
+                                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                            </svg>
                         </div>
-                        <div class="stat-details">
-                            <h3 id="statStudents">0</h3>
-                            <p>Étudiants</p>
+                        <div>
+                            <h3 id="statStudents"
+                                style="font-size:1.75rem; font-weight:800; line-height:1.1; background:linear-gradient(135deg, var(--text-main), rgba(255,255,255,0.7)); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">
+                                0</h3>
+                            <p style="color:var(--text-muted); font-size:0.82rem; margin-top:3px;">Étudiants inscrits
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -272,7 +456,8 @@
                     <h2>Vos cours</h2>
                 </div>
 
-                <div class="table-container">
+                <div class="table-container"
+                    style="background:linear-gradient(160deg, rgba(16,18,38,0.92), rgba(10,12,25,0.96)); border-radius:20px;">
                     <table class="data-table">
                         <thead>
                             <tr>
@@ -283,7 +468,10 @@
                             </tr>
                         </thead>
                         <tbody id="teacherCoursesList">
-                            <tr><td colspan="4" style="text-align:center; color:var(--text-muted); padding:30px;">Chargement...</td></tr>
+                            <tr>
+                                <td colspan="4" style="text-align:center; color:var(--text-muted); padding:30px;">
+                                    Chargement...</td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
@@ -294,7 +482,8 @@
                 <div class="section-header">
                     <h2>Résultats des étudiants</h2>
                 </div>
-                <div class="table-container">
+                <div class="table-container"
+                    style="background:linear-gradient(160deg, rgba(16,18,38,0.92), rgba(10,12,25,0.96)); border-radius:20px;">
                     <table class="data-table">
                         <thead>
                             <tr>
@@ -305,7 +494,89 @@
                             </tr>
                         </thead>
                         <tbody id="teacherResultsList">
-                            <tr><td colspan="4" style="text-align:center; color:var(--text-muted); padding:30px;">Chargement...</td></tr>
+                            <tr>
+                                <td colspan="4" style="text-align:center; color:var(--text-muted); padding:30px;">
+                                    Chargement...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        <!-- SECTION: EVALUATIONS PROGRAMMÉES -->
+            <div id="sectionEvaluations" class="page-section hidden">
+                <div class="section-header" style="display:flex; justify-content:space-between; align-items:center;">
+                    <h2>Évaluations programmées</h2>
+                    <button class="btn-primary" onclick="openModal('programEvalModal')">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                        Programmer
+                    </button>
+                </div>
+                <div class="table-container" style="background:linear-gradient(160deg, rgba(16,18,38,0.92), rgba(10,12,25,0.96)); border-radius:20px;">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Titre Évaluation</th>
+                                <th>Cours / Leçon</th>
+                                <th>Date programmée</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="teacherEvaluationsList">
+                            <tr>
+                                <td colspan="4" style="text-align:center; color:var(--text-muted); padding:30px;">Aucune évaluation programmée.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- SECTION: LIVE (SESSIONS) -->
+            <div id="sectionLive" class="page-section hidden">
+                <div class="section-header">
+                    <h2>Live & Classes virtuelles</h2>
+                    <button class="btn-primary" onclick="generateLiveSession()">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>
+                        Nouveau Live
+                    </button>
+                </div>
+                <div class="table-container" style="background:linear-gradient(160deg, rgba(16,18,38,0.92), rgba(10,12,25,0.96)); border-radius:20px; padding:20px;">
+                    <div id="activeLiveContainer" style="display:none; text-align:center; padding: 20px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
+                            <h3 style="color:#10b981; font-size:1.5rem; margin:0;">🟢 Live en cours</h3>
+                            <div style="background:rgba(255,255,255,0.05); border:1px dashed var(--primary); display:inline-block; padding:8px 15px; border-radius:8px; font-size:1.2rem; font-weight:800; letter-spacing:2px; color:var(--primary);" id="liveSessionIdDisplay"></div>
+                            <button class="btn-action" style="background:rgba(239,68,68,0.15); color:#ef4444; margin:0;" onclick="endLiveSession()">Terminer le Live</button>
+                        </div>
+                        <div id="jitsiContainerTeacher" style="width:100%; height:600px; border-radius:12px; overflow:hidden; background:#000;"></div>
+                    </div>
+                    <div id="noLiveContainer" style="text-align:center; padding: 40px 20px;">
+                        <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:rgba(255,255,255,0.2); margin-bottom:15px;"><path d="M15.6 11.6L22 7v10l-6.4-4.5v-1zM4 5h9a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V7c0-1.1.9-2 2-2z"></path></svg>
+                        <p style="color:var(--text-muted);">Aucun live n'est actuellement en cours.</p>
+                        <p style="font-size:0.85rem; color:var(--text-muted); margin-top:10px;">Cliquez sur "Nouveau Live" pour générer un ID de session.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION: MES ETUDIANTS -->
+            <div id="sectionStudents" class="page-section hidden">
+                <div class="section-header">
+                    <h2>Mes Étudiants</h2>
+                </div>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Étudiant</th>
+                                <th>Cours</th>
+                                <th>Progression</th>
+                                <th>Inscrit le</th>
+                                <th>Statut Certificat</th>
+                            </tr>
+                        </thead>
+                        <tbody id="myStudentsList">
+                            <tr>
+                                <td colspan="5" style="text-align:center; color:var(--text-muted); padding:30px;">
+                                    Chargement des étudiants...</td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
@@ -313,7 +584,7 @@
         </main>
     </div>
 
-    <!-- ====== MODALE : CREER UN COURS ====== -->
+    <!--  MODALE : CREER UN COURS  -->
     <div id="courseModal" class="modal hidden">
         <div class="modal-content">
             <button class="close-btn" data-close="courseModal">&times;</button>
@@ -334,7 +605,8 @@
                 <div class="form-field">
                     <label>Nombre de leçons prévues</label>
                     <input type="number" name="total_lessons" required min="1" value="1">
-                    <small style="color:var(--text-muted); font-size:0.75rem;">Ce nombre sert à calculer la barre de progression des étudiants.</small>
+                    <small style="color:var(--text-muted); font-size:0.75rem;">Ce nombre sert à calculer la barre de
+                        progression des étudiants.</small>
                 </div>
                 <div class="form-field">
                     <label>Description</label>
@@ -351,12 +623,13 @@
             <button class="close-btn" data-close="lessonModal">&times;</button>
             <h2>Gérer les leçons</h2>
             <p style="color:var(--text-muted); margin-bottom:20px;" id="lessonCourseTitle">Cours : ...</p>
-            
+
             <!-- Liste des leçons déjà ajoutées -->
             <div class="lessons-list" id="existingLessons"></div>
 
             <!-- Formulaire d'ajout -->
-            <form id="createLessonForm" enctype="multipart/form-data" style="margin-top:20px; padding-top:20px; border-top:1px solid var(--border-color);">
+            <form id="createLessonForm" enctype="multipart/form-data"
+                style="margin-top:20px; padding-top:20px; border-top:1px solid var(--border-color);">
                 <input type="hidden" name="course_id" id="lesson_course_id">
                 <h3 style="font-size:1rem; margin-bottom:15px; color:var(--text-main);">Ajouter une leçon</h3>
                 <div class="form-field">
@@ -366,38 +639,33 @@
                 <div class="form-field">
                     <label>Type de contenu</label>
                     <select name="content_type" id="lessonContentType" onchange="toggleContentInput()">
-                        <option value="pdf">Fichier PDF (Upload)</option>
-                        <option value="video" selected>Vidéo (Lien YouTube/Vimeo)</option>
+                        <option value="video" selected>Vidéo</option>
+                        <option value="pdf">Fichier PDF</option>
                     </select>
                 </div>
                 <div class="form-field" id="urlInputGroup">
-                    <label>Lien de la Vidéo</label>
-                    <input type="url" name="content_url" id="contentUrlInput" required placeholder="https://youtube.com/...">
+                    <label>Lien de la Vidéo (Optionnel si vous uploadez un fichier)</label>
+                    <input type="url" name="content_url" id="contentUrlInput" placeholder="https://youtube.com/...">
                 </div>
-                <div class="form-field hidden" id="fileInputGroup">
-                    <label>Fichier PDF</label>
-                    <input type="file" name="content_file" id="contentFileInput" accept="application/pdf">
+                <div class="form-field" id="fileInputGroup">
+                    <label>Fichier depuis PC (MP4/PDF)</label>
+                    <input type="file" name="content_file" id="contentFileInput" accept="video/mp4,video/webm,application/pdf">
                 </div>
                 <button type="submit" class="btn-modal-submit">+ Ajouter cette leçon</button>
             </form>
-            
+
             <script>
                 function toggleContentInput() {
                     const type = document.getElementById('lessonContentType').value;
                     const urlGrp = document.getElementById('urlInputGroup');
-                    const fileGrp = document.getElementById('fileInputGroup');
-                    const urlInput = document.getElementById('contentUrlInput');
                     const fileInput = document.getElementById('contentFileInput');
-                    
-                    if(type === 'video') {
+
+                    if (type === 'video') {
                         urlGrp.classList.remove('hidden');
-                        fileGrp.classList.add('hidden');
-                        urlInput.setAttribute('required', 'true');
-                        fileInput.removeAttribute('required');
+                        fileInput.setAttribute('accept', 'video/mp4,video/webm');
                     } else {
                         urlGrp.classList.add('hidden');
-                        fileGrp.classList.remove('hidden');
-                        urlInput.removeAttribute('required');
+                        fileInput.setAttribute('accept', 'application/pdf');
                         fileInput.setAttribute('required', 'true');
                     }
                 }
@@ -411,10 +679,10 @@
             <button class="close-btn" data-close="evalModal">&times;</button>
             <h2>Créer une évaluation (Quizz Multi-questions)</h2>
             <p style="color:var(--text-muted); margin-bottom:20px;" id="evalCourseTitle">Leçon : ...</p>
-            
+
             <form id="createEvalForm">
                 <input type="hidden" name="lesson_id" id="eval_lesson_id">
-                
+
                 <div style="display:flex; gap:15px; margin-bottom: 15px;">
                     <div class="form-field" style="flex:2; margin-bottom:0;">
                         <label>Titre de l'évaluation</label>
@@ -426,22 +694,29 @@
                     </div>
                 </div>
 
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:20px; margin-bottom:15px;">
+                <div
+                    style="display:flex; justify-content:space-between; align-items:center; margin-top:20px; margin-bottom:15px;">
                     <h3 style="font-size:1.1rem; color:var(--text-main);">Questions</h3>
                     <div>
-                        <button type="button" onclick="addQuestionBlock()" style="background:rgba(16,185,129,0.15); color:var(--accent-2); border:1px solid rgba(16,185,129,0.3); padding:6px 12px; border-radius:6px; font-size:0.8rem; cursor:pointer; font-weight:600; margin-right:5px;">+ Ajouter</button>
-                        <button type="button" onclick="generateAIQuiz()" style="background:rgba(99,102,241,0.15); color:var(--primary); border:1px solid rgba(99,102,241,0.3); padding:6px 12px; border-radius:6px; font-size:0.8rem; cursor:pointer; font-weight:600;">✨ Auto IA (3 Q.)</button>
+                        <button type="button" onclick="addQuestionBlock()"
+                            style="background:rgba(16,185,129,0.15); color:var(--accent-2); border:1px solid rgba(16,185,129,0.3); padding:6px 12px; border-radius:6px; font-size:0.8rem; cursor:pointer; font-weight:600; margin-right:5px;">+
+                            Ajouter</button>
+                        <!-- <button type="button" onclick="generateAIQuiz()"
+                            style="background:rgba(99,102,241,0.15); color:var(--primary); border:1px solid rgba(99,102,241,0.3); padding:6px 12px; border-radius:6px; font-size:0.8rem; cursor:pointer; font-weight:600;">✨
+                            Auto IA (3 Q.)
+                        </button> -->
                     </div>
                 </div>
 
-                <div id="questionsContainer" style="max-height: 40vh; overflow-y: auto; padding-right:10px; margin-bottom:20px;">
+                <div id="questionsContainer"
+                    style="max-height: 40vh; overflow-y: auto; padding-right:10px; margin-bottom:20px;">
                     <!-- Les blocs de questions s'ajouteront ici -->
                 </div>
-                
+
                 <input type="hidden" name="questions_json" id="questions_json">
                 <button type="submit" class="btn-modal-submit green">Enregistrer l'évaluation complète</button>
             </form>
-            
+
             <script>
                 let questionCount = 0;
 
@@ -450,7 +725,8 @@
                     const container = document.getElementById('questionsContainer');
                     const block = document.createElement('div');
                     block.className = 'question-block';
-                    block.style.cssText = "background: rgba(255,255,255,0.03); padding:15px; border-radius:10px; border:1px solid var(--border-color); margin-bottom:15px; position:relative;";
+                    block.style.cssText =
+                        "background: rgba(255,255,255,0.03); padding:15px; border-radius:10px; border:1px solid var(--border-color); margin-bottom:15px; position:relative;";
                     block.innerHTML = `
                         <button type="button" onclick="this.parentElement.remove()" style="position:absolute; top:10px; right:10px; background:none; border:none; color:#ef4444; cursor:pointer; font-size:1.2rem;">&times;</button>
                         <h4 style="margin-bottom:10px; color:var(--text-muted); font-size:0.85rem;">Question ${questionCount}</h4>
@@ -476,20 +752,69 @@
                     const container = document.getElementById('questionsContainer');
                     container.innerHTML = ''; // Réinitialiser
                     questionCount = 0;
-                    
-                    const iaQuestions = [
-                        { q: "Quelle méthode HTTP est utilisée pour créer une nouvelle ressource ?", c: "POST", w1: "GET", w2: "DELETE" },
-                        { q: "En PHP, quelle fonction permet d'établir une connexion sécurisée à la base de données ?", c: "PDO", w1: "mysql_connect", w2: "mysqli_fetch" },
-                        { q: "Que signifie le 'M' dans l'architecture MVC ?", c: "Modèle", w1: "Méthode", w2: "Module" },
-                        { q: "Quelle balise HTML est utilisée pour insérer du code JavaScript ?", c: "<script>", w1: "<js>", w2: "<code>" },
-                        { q: "Comment déclare-t-on une constante en JavaScript ES6 ?", c: "const", w1: "var", w2: "let" },
-                        { q: "Quel mot-clé SQL permet de filtrer les résultats d'une requête ?", c: "WHERE", w1: "FILTER", w2: "ORDER BY" },
-                        { q: "Quel port est utilisé par défaut pour le protocole HTTPS ?", c: "443", w1: "80", w2: "8080" },
-                        { q: "Que signifie CSS ?", c: "Cascading Style Sheets", w1: "Creative Style Sheets", w2: "Computer Style Sheets" },
-                        { q: "Lequel de ces langages s'exécute côté serveur ?", c: "PHP", w1: "CSS", w2: "HTML" },
-                        { q: "Que renvoie typeof null en JavaScript ?", c: "object", w1: "null", w2: "undefined" }
+
+                    const iaQuestions = [{
+                            q: "Quelle méthode HTTP est utilisée pour créer une nouvelle ressource ?",
+                            c: "POST",
+                            w1: "GET",
+                            w2: "DELETE"
+                        },
+                        {
+                            q: "En PHP, quelle fonction permet d'établir une connexion sécurisée à la base de données ?",
+                            c: "PDO",
+                            w1: "mysql_connect",
+                            w2: "mysqli_fetch"
+                        },
+                        {
+                            q: "Que signifie le 'M' dans l'architecture MVC ?",
+                            c: "Modèle",
+                            w1: "Méthode",
+                            w2: "Module"
+                        },
+                        {
+                            q: "Quelle balise HTML est utilisée pour insérer du code JavaScript ?",
+                            c: "<script>",
+                            w1: "<js>",
+                            w2: "<code>"
+                        },
+                        {
+                            q: "Comment déclare-t-on une constante en JavaScript ES6 ?",
+                            c: "const",
+                            w1: "var",
+                            w2: "let"
+                        },
+                        {
+                            q: "Quel mot-clé SQL permet de filtrer les résultats d'une requête ?",
+                            c: "WHERE",
+                            w1: "FILTER",
+                            w2: "ORDER BY"
+                        },
+                        {
+                            q: "Quel port est utilisé par défaut pour le protocole HTTPS ?",
+                            c: "443",
+                            w1: "80",
+                            w2: "8080"
+                        },
+                        {
+                            q: "Que signifie CSS ?",
+                            c: "Cascading Style Sheets",
+                            w1: "Creative Style Sheets",
+                            w2: "Computer Style Sheets"
+                        },
+                        {
+                            q: "Lequel de ces langages s'exécute côté serveur ?",
+                            c: "PHP",
+                            w1: "CSS",
+                            w2: "HTML"
+                        },
+                        {
+                            q: "Que renvoie typeof null en JavaScript ?",
+                            c: "object",
+                            w1: "null",
+                            w2: "undefined"
+                        }
                     ];
-                    
+
                     iaQuestions.forEach(item => {
                         addQuestionBlock(item.q, item.c, item.w1, item.w2);
                     });
@@ -503,7 +828,79 @@
         </div>
     </div>
 
+    <!-- ====== MODALE : PROGRAMMER EVALUATION ====== -->
+    <div id="programEvalModal" class="modal hidden">
+        <div class="modal-content">
+            <button class="close-btn" data-close="programEvalModal">&times;</button>
+            <h2>Programmer une évaluation</h2>
+            <form id="programEvalForm">
+                <div class="form-field">
+                    <label>Titre de l'évaluation</label>
+                    <input type="text" name="title" required placeholder="Ex: Examen final">
+                </div>
+                <div class="form-field">
+                    <label>Cours concerné</label>
+                    <select name="course_id" id="programEvalCourseSelect" required>
+                        <option value="">Chargement des cours...</option>
+                    </select>
+                </div>
+                <div class="form-field">
+                    <label>Date et Heure</label>
+                    <input type="datetime-local" name="eval_date" required>
+                </div>
+                <div class="form-field" style="display: flex; align-items: center; gap: 10px;">
+                    <input type="checkbox" name="is_final_exam" id="isFinalExamCheck" value="1" style="width: auto;" checked>
+                    <label for="isFinalExamCheck" style="margin: 0; color: var(--text-main);">Définir comme examen final du cours</label>
+                </div>
+                
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:20px; margin-bottom:15px;">
+                    <h3 style="font-size:1.1rem; color:var(--text-main);">Questions</h3>
+                    <div>
+                        <button type="button" onclick="addQuestionBlockProgram()"
+                            style="background:rgba(16,185,129,0.15); color:var(--accent-2); border:1px solid rgba(16,185,129,0.3); padding:6px 12px; border-radius:6px; font-size:0.8rem; cursor:pointer; font-weight:600;">+ Ajouter</button>
+                    </div>
+                </div>
+
+                <div id="questionsContainerProgram" style="max-height: 40vh; overflow-y: auto; padding-right:10px; margin-bottom:20px;">
+                    <!-- Les blocs de questions s'ajouteront ici -->
+                </div>
+
+                <input type="hidden" name="questions_json" id="program_questions_json">
+                <button type="submit" class="btn-modal-submit">Programmer l'évaluation complète</button>
+            </form>
+        </div>
+    </div>
+    <script>
+        let questionCountProgram = 0;
+        window.addQuestionBlockProgram = function(qText = '', cAns = '', w1 = '', w2 = '') {
+            questionCountProgram++;
+            const container = document.getElementById('questionsContainerProgram');
+            const block = document.createElement('div');
+            block.className = 'question-block';
+            block.style.cssText = "background: rgba(255,255,255,0.03); padding:15px; border-radius:10px; border:1px solid var(--border-color); margin-bottom:15px; position:relative;";
+            block.innerHTML = `
+                <button type="button" onclick="this.parentElement.remove()" style="position:absolute; top:10px; right:10px; background:none; border:none; color:#ef4444; cursor:pointer; font-size:1.2rem;">&times;</button>
+                <h4 style="margin-bottom:10px; color:var(--text-muted); font-size:0.85rem;">Question ${questionCountProgram}</h4>
+                <div class="form-field">
+                    <textarea class="q-text" required placeholder="Votre question..." style="min-height:50px; font-size:0.9rem; padding:10px;">${qText}</textarea>
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                    <div class="form-field" style="margin:0;">
+                        <input type="text" class="q-correct" required placeholder="Bonne réponse" value="${cAns}" style="border-color:#10b981; background:rgba(16,185,129,0.05); font-size:0.85rem; padding:8px;">
+                    </div>
+                    <div class="form-field" style="margin:0;">
+                        <input type="text" class="q-wrong1" required placeholder="Fausse réponse 1" value="${w1}" style="font-size:0.85rem; padding:8px;">
+                    </div>
+                    <div class="form-field" style="margin:0; grid-column:span 2;">
+                        <input type="text" class="q-wrong2" placeholder="Fausse réponse 2 (Optionnel)" value="${w2}" style="font-size:0.85rem; padding:8px;">
+                    </div>
+                </div>
+            `;
+            container.appendChild(block);
+        }
+    </script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="js/teacher.js"></script>
+    <script src="https://meet.jit.si/external_api.js"></script>
+    <script src="js/teacher.js?v=6"></script>
 </body>
 </html>

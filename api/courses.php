@@ -58,7 +58,7 @@ if ($method === 'GET') {
     // Un étudiant veut voir SES cours rejoints
     elseif ($action === 'list_enrolled' && $role === 'student') {
         $stmt = $pdo->prepare("
-            SELECT c.id, c.title, c.description, cat.name as category_name, e.progress_percentage
+            SELECT c.id, c.title, c.description, c.total_lessons, cat.name as category_name, e.progress_percentage
             FROM courses c
             JOIN enrollments e ON c.id = e.course_id
             LEFT JOIN categories cat ON c.category_id = cat.id
@@ -144,6 +144,7 @@ elseif ($method === 'POST') {
     // L'étudiant met à jour sa progression (après chaque leçon)
     elseif ($action === 'update_progress' && $role === 'student') {
         $course_id = $_POST['course_id'] ?? null;
+        $new_progress = isset($_POST['new_progress']) ? (float)$_POST['new_progress'] : null;
         
         if (!$course_id) {
             echo json_encode(["status" => "error", "message" => "ID du cours manquant."]);
@@ -151,35 +152,44 @@ elseif ($method === 'POST') {
         }
 
         try {
-            // 1. Lire le total de leçons prévues pour ce cours
-            $stmtCount = $pdo->prepare("SELECT total_lessons FROM courses WHERE id = :course_id");
-            $stmtCount->execute(['course_id' => $course_id]);
-            $total_lessons = (int)$stmtCount->fetchColumn();
+            if ($new_progress !== null) {
+                // Mettre à jour la progression avec la nouvelle valeur si elle est plus grande
+                $stmtUpdate = $pdo->prepare("
+                    UPDATE enrollments 
+                    SET progress_percentage = LEAST(GREATEST(progress_percentage, :new_progress), 100) 
+                    WHERE student_id = :student_id AND course_id = :course_id
+                ");
+                $stmtUpdate->execute([
+                    'new_progress' => $new_progress,
+                    'student_id' => $user_id,
+                    'course_id' => $course_id
+                ]);
+            } else {
+                // Fallback (old behavior with increment, but guarded)
+                $stmtCount = $pdo->prepare("SELECT COUNT(*) FROM lessons WHERE course_id = :course_id");
+                $stmtCount->execute(['course_id' => $course_id]);
+                $total_lessons = (int)$stmtCount->fetchColumn();
+                if ($total_lessons <= 0) $total_lessons = 1; 
+                $increment = 100 / $total_lessons;
 
-            if ($total_lessons <= 0) {
-                $total_lessons = 1; // Sécurité
+                $stmtUpdate = $pdo->prepare("
+                    UPDATE enrollments 
+                    SET progress_percentage = LEAST(progress_percentage + :increment, 100) 
+                    WHERE student_id = :student_id AND course_id = :course_id
+                ");
+                $stmtUpdate->execute([
+                    'increment' => $increment,
+                    'student_id' => $user_id,
+                    'course_id' => $course_id
+                ]);
             }
-            
-            $increment = 100 / $total_lessons;
-
-            // 2. Mettre à jour la progression en l'incrémentant
-            $stmtUpdate = $pdo->prepare("
-                UPDATE enrollments 
-                SET progress_percentage = LEAST(progress_percentage + :increment, 100) 
-                WHERE student_id = :student_id AND course_id = :course_id
-            ");
-            $stmtUpdate->execute([
-                'increment' => $increment,
-                'student_id' => $user_id,
-                'course_id' => $course_id
-            ]);
             
             // 3. Récupérer la nouvelle progression pour la renvoyer
             $stmtCheck = $pdo->prepare("SELECT progress_percentage FROM enrollments WHERE student_id = :student_id AND course_id = :course_id");
             $stmtCheck->execute(['student_id' => $user_id, 'course_id' => $course_id]);
-            $new_progress = $stmtCheck->fetchColumn();
+            $current_progress = $stmtCheck->fetchColumn();
 
-            echo json_encode(["status" => "success", "message" => "Progression mise à jour", "new_progress" => $new_progress]);
+            echo json_encode(["status" => "success", "message" => "Progression mise à jour", "new_progress" => $current_progress]);
         } catch(PDOException $e) {
             echo json_encode(["status" => "error", "message" => "Erreur BDD: " . $e->getMessage()]);
         }
@@ -220,7 +230,21 @@ elseif ($method === 'POST') {
             echo json_encode(["status" => "error", "message" => "Erreur BDD: " . $e->getMessage()]);
         }
     }
-    // L'enseignant supprime un cours
+    // === NOUVEL ENDPOINT : Liste des étudiants inscrits aux cours de ce professeur ===
+    elseif ($action === 'list_my_students' && $role === 'teacher') {
+        $stmt = $pdo->prepare("
+            SELECT u.first_name, u.last_name, c.title as course_title, e.progress_percentage, e.enrolled_at,
+                   IFNULL(cert.status, 'Aucun') as cert_status
+            FROM enrollments e
+            JOIN users u ON e.student_id = u.id
+            JOIN courses c ON e.course_id = c.id
+            LEFT JOIN certificates cert ON cert.student_id = u.id AND cert.course_id = c.id
+            WHERE c.teacher_id = :teacher_id
+            ORDER BY e.enrolled_at DESC
+        ");
+        $stmt->execute(['teacher_id' => $user_id]);
+        echo json_encode(["status" => "success", "students" => $stmt->fetchAll(PDO::FETCH_ASSOC)]);
+    }
     elseif ($action === 'delete' && $role === 'teacher') {
         $course_id = $_POST['course_id'] ?? null;
         if (!$course_id) {
@@ -240,6 +264,25 @@ elseif ($method === 'POST') {
             $stmt = $pdo->prepare("DELETE FROM courses WHERE id = :id");
             $stmt->execute(['id' => $course_id]);
             echo json_encode(["status" => "success", "message" => "Cours supprimé"]);
+        } catch(PDOException $e) {
+            echo json_encode(["status" => "error", "message" => "Erreur BDD: " . $e->getMessage()]);
+        }
+    }
+    // L'étudiant quitte un cours (désinscription)
+    elseif ($action === 'unenroll' && $role === 'student') {
+        $course_id = $_POST['course_id'] ?? null;
+        if (!$course_id) {
+            echo json_encode(["status" => "error", "message" => "ID du cours manquant."]);
+            exit;
+        }
+        try {
+            // Supprimer la progression et les résultats liés
+            $pdo->prepare("DELETE FROM results WHERE student_id = :uid AND evaluation_id IN (SELECT id FROM evaluations WHERE course_id = :cid OR lesson_id IN (SELECT id FROM lessons WHERE course_id = :cid2))")
+                ->execute(['uid' => $user_id, 'cid' => $course_id, 'cid2' => $course_id]);
+            // Supprimer l'inscription
+            $stmt = $pdo->prepare("DELETE FROM enrollments WHERE student_id = :student_id AND course_id = :course_id");
+            $stmt->execute(['student_id' => $user_id, 'course_id' => $course_id]);
+            echo json_encode(["status" => "success", "message" => "Vous avez quitté ce cours."]);
         } catch(PDOException $e) {
             echo json_encode(["status" => "error", "message" => "Erreur BDD: " . $e->getMessage()]);
         }

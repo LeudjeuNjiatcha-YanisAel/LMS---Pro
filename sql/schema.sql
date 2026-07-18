@@ -19,6 +19,9 @@ CREATE TABLE users (
     last_name VARCHAR(100) NOT NULL,   -- Nom de famille
     email VARCHAR(150) NOT NULL UNIQUE,-- Email (utilisé pour la connexion)
     password_hash VARCHAR(255) NOT NULL, -- Mot de passe crypté
+    filiere VARCHAR(100) NULL,         -- Filière (pour les étudiants)
+    matricule VARCHAR(50) NULL UNIQUE, -- Matricule (pour les étudiants)
+    numero_unique VARCHAR(50) NULL UNIQUE, -- Numéro unique (pour les enseignants)
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- Date de création
     FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE CASCADE
 );
@@ -56,9 +59,13 @@ CREATE TABLE lessons (
 -- Table des évaluations
 CREATE TABLE evaluations (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    lesson_id INT NOT NULL,
+    lesson_id INT NULL,
+    course_id INT NULL,
     title VARCHAR(200) NOT NULL,
-    FOREIGN KEY (lesson_id) REFERENCES lessons(id) ON DELETE CASCADE
+    scheduled_date DATETIME NULL,
+    required_score DECIMAL(5,2) DEFAULT 50.00,
+    FOREIGN KEY (lesson_id) REFERENCES lessons(id) ON DELETE CASCADE,
+    FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE CASCADE
 );
 
 -- Table des questions (pour les évaluations)
@@ -107,7 +114,19 @@ CREATE TABLE certificates (
     id INT AUTO_INCREMENT PRIMARY KEY,
     student_id INT NOT NULL,
     course_id INT NOT NULL,
+    status ENUM('pending', 'approved', 'rejected') DEFAULT 'pending',
     issued_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (student_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE CASCADE
+);
+
+-- Table des sessions Live
+CREATE TABLE live_sessions (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    teacher_id INT NOT NULL,
+    course_id INT NULL,
+    session_code VARCHAR(50) NOT NULL UNIQUE,
+    status ENUM('active', 'ended') DEFAULT 'active',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (teacher_id) REFERENCES users(id) ON DELETE CASCADE
 );

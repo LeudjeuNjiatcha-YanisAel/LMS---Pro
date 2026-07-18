@@ -18,16 +18,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
-    // Prépare une requête SQL pour trouver l'utilisateur par son email
-    // On joint la table roles pour obtenir le nom du rôle directement
-    $stmt = $pdo->prepare("
-        SELECT u.id, u.password_hash, u.first_name, u.last_name, r.name as role 
-        FROM users u 
-        JOIN roles r ON u.role_id = r.id 
-        WHERE u.email = :email
-    ");
-    $stmt->execute(['email' => $email]); // Exécute la requête avec l'email fourni
-    $user = $stmt->fetch(); // Récupère la première ligne de résultat
+    // Prépare une requête SQL pour trouver l'utilisateur par son email, matricule ou numero_unique
+    try {
+        $stmt = $pdo->prepare("
+            SELECT u.id, u.password_hash, u.first_name, u.last_name, r.name as role 
+            FROM users u 
+            JOIN roles r ON u.role_id = r.id 
+            WHERE u.email = :id1 OR u.matricule = :id2 OR u.numero_unique = :id3
+        ");
+        $stmt->execute([
+            'id1' => $email,
+            'id2' => $email,
+            'id3' => $email
+        ]); // Exécute la requête avec l'identifiant fourni
+        $user = $stmt->fetch(); // Récupère la première ligne de résultat
+    } catch (\PDOException $e) {
+        // En cas d'erreur (ex: colonne manquante car BDD non mise à jour), on renvoie l'erreur en clair
+        echo json_encode(["status" => "error", "message" => "Erreur BDD : " . $e->getMessage()]);
+        exit;
+    }
 
     // Vérifie si l'utilisateur existe et si le mot de passe correspond au hash stocké
     if ($user && password_verify($password, $user['password_hash'])) {

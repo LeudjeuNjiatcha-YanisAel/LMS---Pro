@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LMS Pro - Inscription</title>
+    <title>Learn Hub - Inscription</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -19,7 +20,13 @@
             --accent-pink: #ec4899;
             --accent-green: #10b981;
         }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
             font-family: 'Outfit', sans-serif;
             background-color: var(--bg-dark);
@@ -28,10 +35,11 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            background: radial-gradient(circle at 20% 50%, rgba(99,102,241,0.08), transparent 50%),
-                        radial-gradient(circle at 80% 20%, rgba(236,72,153,0.05), transparent 50%),
-                        var(--bg-dark);
+            background: radial-gradient(circle at 20% 50%, rgba(99, 102, 241, 0.08), transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(236, 72, 153, 0.05), transparent 50%),
+                var(--bg-dark);
         }
+
         .login-wrapper {
             display: flex;
             width: 900px;
@@ -39,9 +47,10 @@
             min-height: 600px;
             border-radius: 24px;
             overflow: hidden;
-            box-shadow: 0 25px 60px rgba(0,0,0,0.5);
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5);
             border: 1px solid var(--border-color);
         }
+
         .login-left {
             flex: 1;
             background: linear-gradient(135deg, var(--accent-green), #0891b2);
@@ -53,17 +62,37 @@
             position: relative;
             overflow: hidden;
         }
+
         .login-left::before {
             content: '';
             position: absolute;
-            width: 300px; height: 300px;
-            background: rgba(255,255,255,0.1);
+            width: 300px;
+            height: 300px;
+            background: rgba(255, 255, 255, 0.1);
             border-radius: 50%;
-            bottom: -100px; left: -80px;
+            bottom: -100px;
+            left: -80px;
             filter: blur(40px);
         }
-        .login-left h1 { font-size: 2.5rem; font-weight: 700; color: white; margin-bottom: 15px; position: relative; z-index: 1; }
-        .login-left p { color: rgba(255,255,255,0.85); font-size: 1.1rem; text-align: center; line-height: 1.6; position: relative; z-index: 1; }
+
+        .login-left h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 15px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .login-left p {
+            color: rgba(255, 255, 255, 0.85);
+            font-size: 1.1rem;
+            text-align: center;
+            line-height: 1.6;
+            position: relative;
+            z-index: 1;
+        }
+
         .login-right {
             flex: 1;
             background-color: var(--bg-card);
@@ -73,43 +102,146 @@
             justify-content: center;
             overflow-y: auto;
         }
-        .login-right h2 { font-size: 1.6rem; font-weight: 600; margin-bottom: 8px; }
-        .login-right .subtitle { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 25px; }
-        @keyframes popIn {
-            0% { opacity: 0; transform: scale(0.8) translateY(-15px); }
-            70% { transform: scale(1.03) translateY(3px); }
-            100% { opacity: 1; transform: scale(1) translateY(0); }
+
+        .login-right h2 {
+            font-size: 1.6rem;
+            font-weight: 600;
+            margin-bottom: 8px;
         }
-        .msg-box { padding: 14px; border-radius: 12px; margin-bottom: 18px; font-size: 0.9rem; font-weight: 500; text-align: center; animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
-        .msg-box.success { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.3); }
-        .msg-box.error { background: rgba(239, 68, 68, 0.12); color: #fca5a5; border: 1px solid rgba(239,68,68,0.25); }
-        .hidden { display: none !important; }
-        .field { margin-bottom: 18px; }
-        .field label { display: block; font-size: 0.85rem; font-weight: 500; color: var(--text-muted); margin-bottom: 8px; }
-        .field input, .field select {
-            width: 100%; padding: 13px 16px;
-            background-color: var(--bg-dark); color: var(--text-main);
-            border: 1px solid var(--border-color); border-radius: 12px;
-            font-size: 0.95rem; font-family: inherit; outline: none;
+
+        .login-right .subtitle {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-bottom: 25px;
+        }
+
+        @keyframes popIn {
+            0% {
+                opacity: 0;
+                transform: scale(0.8) translateY(-15px);
+            }
+
+            70% {
+                transform: scale(1.03) translateY(3px);
+            }
+
+            100% {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .msg-box {
+            padding: 14px;
+            border-radius: 12px;
+            margin-bottom: 18px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            text-align: center;
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        .msg-box.success {
+            background: rgba(16, 185, 129, 0.15);
+            color: #34d399;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .msg-box.error {
+            background: rgba(239, 68, 68, 0.12);
+            color: #fca5a5;
+            border: 1px solid rgba(239, 68, 68, 0.25);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .field {
+            margin-bottom: 18px;
+        }
+
+        .field label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+
+        .field input,
+        .field select {
+            width: 100%;
+            padding: 13px 16px;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            font-size: 0.95rem;
+            font-family: inherit;
+            outline: none;
             transition: border-color 0.3s, box-shadow 0.3s;
         }
-        .field input:focus, .field select:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(99,102,241,0.15); }
-        .btn-login {
-            width: 100%; padding: 14px;
-            background: linear-gradient(135deg, var(--accent-green), #0891b2);
-            color: white; border: none; border-radius: 12px;
-            font-size: 1rem; font-weight: 600; font-family: inherit;
-            cursor: pointer; transition: transform 0.2s, box-shadow 0.3s;
-            box-shadow: 0 4px 15px rgba(16,185,129,0.3);
+
+        .field input:focus,
+        .field select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
         }
-        .btn-login:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(16,185,129,0.45); }
-        .btn-login:active { transform: scale(0.98); }
-        .bottom-link { margin-top: 20px; text-align: center; font-size: 0.9rem; color: var(--text-muted); }
-        .bottom-link a { color: var(--accent-green); text-decoration: none; font-weight: 600; }
-        .bottom-link a:hover { text-decoration: underline; }
-        @media (max-width: 768px) { .login-left { display: none; } .login-wrapper { border-radius: 16px; } }
+
+        .btn-login {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, var(--accent-green), #0891b2);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.3s;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.45);
+        }
+
+        .btn-login:active {
+            transform: scale(0.98);
+        }
+
+        .bottom-link {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .bottom-link a {
+            color: var(--accent-green);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .bottom-link a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            .login-left {
+                display: none;
+            }
+
+            .login-wrapper {
+                border-radius: 16px;
+            }
+        }
     </style>
 </head>
+
 <body>
     <div class="login-wrapper">
         <div class="login-left">
@@ -127,6 +259,24 @@
                         <option value="student">Étudiant</option>
                         <option value="teacher">Enseignant</option>
                     </select>
+                </div>
+                <!-- Champs spécifiques Étudiant -->
+                <div id="studentFields">
+                    <div class="field">
+                        <label for="matricule">Matricule</label>
+                        <input type="text" id="matricule" name="matricule" placeholder="Ex: 19A001FS">
+                    </div>
+                    <div class="field">
+                        <label for="filiere">Filière</label>
+                        <input type="text" id="filiere" name="filiere" placeholder="Ex: Informatique">
+                    </div>
+                </div>
+                <!-- Champs spécifiques Enseignant -->
+                <div id="teacherFields" class="hidden">
+                    <div class="field">
+                        <label for="numero_unique">Numéro Unique</label>
+                        <input type="text" id="numero_unique" name="numero_unique" placeholder="Ex: ENS-2026-XYZ">
+                    </div>
                 </div>
                 <div class="field">
                     <label for="first_name">Prénom</label>
@@ -154,4 +304,5 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="js/register.js"></script>
 </body>
+
 </html>

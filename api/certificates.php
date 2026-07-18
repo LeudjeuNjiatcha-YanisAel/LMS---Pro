@@ -1,8 +1,11 @@
 <?php
-session_start();
-require 'db.php';
-header('Content-Type: application/json');
+// api/certificates.php : Gère la demande et la récupération des certificats pour les étudiants
 
+session_start(); // On démarre la session utilisateur
+require 'db.php'; // Connexion à la base de données
+header('Content-Type: application/json'); // Format de retour JSON
+
+// Vérification de sécurité : Seul un utilisateur connecté peut accéder à ce script
 if (!isset($_SESSION['user_id'])) {
     echo json_encode(["status" => "error", "message" => "Non autorisé"]);
     exit;
