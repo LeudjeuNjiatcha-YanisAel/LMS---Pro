@@ -48,6 +48,13 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(data => {
             if(data.status === 'success' && data.lessons.length > 0) {
                 allLessons = data.lessons;
+                if(data.final_eval) {
+                    allLessons.push({
+                        is_final_eval: true,
+                        eval_id: data.final_eval.id,
+                        title: "Examen final : " + data.final_eval.title
+                    });
+                }
                 renderLessonsSidebar();
                 
                 // Déterminer la leçon actuelle (basée sur la progression)
@@ -68,19 +75,38 @@ document.addEventListener('DOMContentLoaded', function() {
         const completedLessonsCount = Math.round((studentProgress / 100) * courseTotalLessons);
         
         allLessons.forEach((lesson, index) => {
-            const isCompleted = index < completedLessonsCount;
-            const isLocked = index > completedLessonsCount;
+            let isCompleted = false;
+            let isLocked = false;
+            let pctText = '';
+            
+            if (lesson.is_final_eval) {
+                // L'examen final n'est débloqué que si TOUTES les leçons normales sont terminées
+                isLocked = completedLessonsCount < courseTotalLessons;
+                isCompleted = false; // L'examen lui-même est traité à la fin
+            } else {
+                isCompleted = index < completedLessonsCount;
+                isLocked = index > completedLessonsCount;
+                pctText = Math.round(((index + 1) / courseTotalLessons) * 100) + '%';
+            }
             
             const div = document.createElement('div');
             div.className = `lesson-item ${isLocked ? 'locked' : ''} ${index === currentLessonIndex ? 'active' : ''}`;
             
             let circleClass = isCompleted ? 'completed' : '';
-            let pctText = Math.round(((index + 1) / courseTotalLessons) * 100) + '%';
             
-            div.innerHTML = `
-                <div class="lesson-title-sidebar">${lesson.title}</div>
-                <div class="circle-progress ${circleClass}" style="font-size:0.65rem; width:30px; height:30px;">${!isCompleted ? pctText : ''}</div>
-            `;
+            if (lesson.is_final_eval) {
+                div.innerHTML = `
+                    <div class="lesson-title-sidebar" style="color:var(--accent-pink); font-weight:700;">⭐ ${lesson.title}</div>
+                    <div class="circle-progress" style="font-size:0.65rem; width:30px; height:30px; background:rgba(236, 72, 153, 0.1); border-color:var(--accent-pink); color:var(--accent-pink);">
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>
+                    </div>
+                `;
+            } else {
+                div.innerHTML = `
+                    <div class="lesson-title-sidebar">${lesson.title}</div>
+                    <div class="circle-progress ${circleClass}" style="font-size:0.65rem; width:30px; height:30px;">${!isCompleted ? pctText : ''}</div>
+                `;
+            }
             
             div.onclick = () => {
                 if(!isLocked) {
@@ -101,6 +127,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function loadLessonContent(index) {
         const lesson = allLessons[index];
+        
+        if (lesson.is_final_eval) {
+            mediaViewer.style.display = 'none';
+            const infoPanel = document.getElementById('lessonInfoPanel');
+            if(infoPanel) infoPanel.style.display = 'none';
+            loadEvaluation(null, lesson.eval_id);
+            return;
+        }
+        
+        mediaViewer.style.display = 'flex';
         evaluationSection.classList.add('hidden');
 
         // --- Mise à jour du panneau infos leçon ---
@@ -148,117 +184,67 @@ document.addEventListener('DOMContentLoaded', function() {
         mediaViewer.style.flexDirection = '';
         mediaViewer.style.padding = '';
 
-        // ----- CAS : PAS DERNIÈRE LEÇON (bouton Suivant) -----
-        if(index < allLessons.length - 1) {
-            if (isLocalVideo) {
-                // Overlay qui s'affiche quand la vidéo se termine
-                const vid = document.getElementById('localVideoPlayer');
-                if(vid) {
-                    vid.onended = () => {
-                        const overlay = document.createElement('div');
-                        overlay.className = 'video-end-overlay';
-                        overlay.innerHTML = `
-                            <div class="check-icon"><i class="fa-solid fa-check"></i></div>
-                            <h3>Leçon terminée !</h3>
-                            <p>Bravo, vous avez visionné toute la vidéo.</p>
-                            <button class="overlay-btn" id="nextLessonOverlayBtn">
-                                <i class="fa-solid fa-forward-step"></i>
-                                Passer à la suite
-                            </button>
-                        `;
-                        mediaViewer.appendChild(overlay);
-                        document.getElementById('nextLessonOverlayBtn').onclick = () => markLessonCompleted();
+        const existing = document.getElementById('lessonConfirmZone');
+        if (existing) existing.remove();
+
+        const hasNext = index < allLessons.length - 1;
+
+        if (isLocalVideo) {
+            const vid = document.getElementById('localVideoPlayer');
+            if(vid) {
+                vid.onended = () => {
+                    const overlay = document.createElement('div');
+                    overlay.className = 'video-end-overlay';
+                    overlay.innerHTML = `
+                        <div class="check-icon"><i class="fa-solid fa-check"></i></div>
+                        <h3>Leçon terminée !</h3>
+                        <p>Bravo, vous avez visionné toute la vidéo.</p>
+                        <button class="overlay-btn" id="nextLessonOverlayBtn">
+                            <i class="fa-solid ${hasNext ? 'fa-forward-step' : 'fa-flag-checkered'}"></i>
+                            ${hasNext ? 'Passer à la suite' : 'Terminer le cours'}
+                        </button>
+                    `;
+                    mediaViewer.appendChild(overlay);
+                    document.getElementById('nextLessonOverlayBtn').onclick = () => {
+                        markLessonCompleted(hasNext);
                     };
-                }
-            } else {
-                // PDF ou YouTube -> case à cocher sous le player (hors mediaViewer)
-                const existing = document.getElementById('lessonConfirmZone');
-                if (existing) existing.remove();
-
-                const confirmZone = document.createElement('div');
-                confirmZone.id = 'lessonConfirmZone';
-                confirmZone.style.cssText = 'display:flex; flex-direction:column; align-items:center; gap:20px; margin-top:5px;';
-
-                const btn = document.createElement('button');
-                btn.className = 'btn-submit-eval';
-                btn.innerHTML = '<i class="fa-solid fa-forward-step"></i> Leçon terminée, passer à la suivante';
-                btn.disabled = true;
-                btn.style.opacity = '0.5';
-                btn.style.cursor = 'not-allowed';
-                btn.onclick = () => markLessonCompleted();
-
-                confirmZone.innerHTML = `
-                    <label class="custom-checkbox-wrapper">
-                        <input type="checkbox" id="confirmReadCheck">
-                        <span>Je confirme avoir terminé cette leçon</span>
-                    </label>
-                `;
-                confirmZone.appendChild(btn);
-
-                // Insérer après le panneau infos
-                const infoP = document.getElementById('lessonInfoPanel');
-                infoP ? infoP.after(confirmZone) : document.getElementById('mediaViewer').after(confirmZone);
-
-                document.getElementById('confirmReadCheck').addEventListener('change', function(e) {
-                    btn.disabled = !e.target.checked;
-                    btn.style.opacity = e.target.checked ? '1' : '0.5';
-                    btn.style.cursor = e.target.checked ? 'pointer' : 'not-allowed';
-                });
+                };
             }
-
         } else {
-            // ----- CAS : DERNIÈRE LEÇON -> déclencher évaluation -----
-            if (isLocalVideo) {
-                const vid = document.getElementById('localVideoPlayer');
-                if(vid) {
-                    vid.onended = () => {
-                        const overlay = document.createElement('div');
-                        overlay.className = 'video-end-overlay';
-                        overlay.innerHTML = `
-                            <div class="check-icon"><i class="fa-solid fa-trophy"></i></div>
-                            <h3>Cours terminé !</h3>
-                            <p>Vous pouvez maintenant passer l'évaluation finale.</p>
-                            <button class="overlay-btn" id="startFinalEvalBtn">
-                                <i class="fa-solid fa-pen-to-square"></i>
-                                Commencer l'évaluation
-                            </button>
-                        `;
-                        mediaViewer.appendChild(overlay);
-                        document.getElementById('startFinalEvalBtn').onclick = function() {
-                            this.disabled = true;
-                            loadEvaluation(lesson.id);
-                        };
-                    };
-                }
-            } else {
-                // PDF / YouTube -> case à cocher hors mediaViewer
-                const existing = document.getElementById('lessonConfirmZone');
-                if (existing) existing.remove();
+            const confirmZone = document.createElement('div');
+            confirmZone.id = 'lessonConfirmZone';
+            confirmZone.style.cssText = 'display:flex; flex-direction:column; align-items:center; gap:20px; margin-top:5px;';
 
-                const confirmZone = document.createElement('div');
-                confirmZone.id = 'lessonConfirmZone';
-                confirmZone.style.cssText = 'display:flex; flex-direction:column; align-items:center; gap:20px; margin-top:5px;';
-                confirmZone.innerHTML = `
-                    <label class="custom-checkbox-wrapper">
-                        <input type="checkbox" id="confirmReadCheckEval">
-                        <span>Je confirme avoir terminé cette dernière leçon pour passer l'évaluation</span>
-                    </label>
-                `;
+            const btn = document.createElement('button');
+            btn.className = 'btn-submit-eval';
+            btn.innerHTML = `<i class="fa-solid ${hasNext ? 'fa-forward-step' : 'fa-flag-checkered'}"></i> ` + (hasNext ? 'Leçon terminée, passer à la suivante' : 'Terminer le cours');
+            btn.disabled = true;
+            btn.style.opacity = '0.5';
+            btn.style.cursor = 'not-allowed';
+            btn.onclick = () => {
+                markLessonCompleted(hasNext);
+            };
 
-                const infoP = document.getElementById('lessonInfoPanel');
-                infoP ? infoP.after(confirmZone) : document.getElementById('mediaViewer').after(confirmZone);
+            confirmZone.innerHTML = `
+                <label class="custom-checkbox-wrapper">
+                    <input type="checkbox" id="confirmReadCheck">
+                    <span>Je confirme avoir terminé cette leçon</span>
+                </label>
+            `;
+            confirmZone.appendChild(btn);
 
-                document.getElementById('confirmReadCheckEval').addEventListener('change', function(e) {
-                    if (e.target.checked) {
-                        this.disabled = true;
-                        loadEvaluation(lesson.id);
-                    }
-                });
-            }
+            const infoP = document.getElementById('lessonInfoPanel');
+            infoP ? infoP.after(confirmZone) : document.getElementById('mediaViewer').after(confirmZone);
+
+            document.getElementById('confirmReadCheck').addEventListener('change', function(e) {
+                btn.disabled = !e.target.checked;
+                btn.style.opacity = e.target.checked ? '1' : '0.5';
+                btn.style.cursor = e.target.checked ? 'pointer' : 'not-allowed';
+            });
         }
     }
 
-    function markLessonCompleted() {
+    function markLessonCompleted(loadNext = true) {
         const newCompletedCount = currentLessonIndex + 1;
         const newProgress = (newCompletedCount / courseTotalLessons) * 100;
         
@@ -273,14 +259,28 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(res => {
                 studentProgress = newProgress;
                 updateGlobalProgress();
+                if (loadNext && currentLessonIndex + 1 < allLessons.length) {
+                    currentLessonIndex++;
+                    renderLessonsSidebar();
+                    loadLessonContent(currentLessonIndex);
+                } else {
+                    renderLessonsSidebar();
+                    Swal.fire("Félicitations !", "Vous avez terminé toutes les leçons de ce cours.", "success").then(() => {
+                        window.location.href = "student_dashboard.html";
+                    });
+                }
+            });
+        } else {
+            if (loadNext && currentLessonIndex + 1 < allLessons.length) {
                 currentLessonIndex++;
                 renderLessonsSidebar();
                 loadLessonContent(currentLessonIndex);
-            });
-        } else {
-            currentLessonIndex++;
-            renderLessonsSidebar();
-            loadLessonContent(currentLessonIndex);
+            } else {
+                renderLessonsSidebar();
+                Swal.fire("Félicitations !", "Vous avez terminé toutes les leçons de ce cours.", "success").then(() => {
+                    window.location.href = "student_dashboard.html";
+                });
+            }
         }
     }
 

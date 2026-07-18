@@ -29,7 +29,12 @@ if ($method === 'GET') {
         $stmt->execute(['course_id' => $course_id]);
         $lessons = $stmt->fetchAll();
         
-        echo json_encode(["status" => "success", "lessons" => $lessons]);
+        // Vérifier s'il y a un examen final pour ce cours
+        $stmtEval = $pdo->prepare("SELECT id, title FROM evaluations WHERE course_id = :course_id AND is_final_exam = 1 LIMIT 1");
+        $stmtEval->execute(['course_id' => $course_id]);
+        $finalEval = $stmtEval->fetch();
+        
+        echo json_encode(["status" => "success", "lessons" => $lessons, "final_eval" => $finalEval]);
     } else {
         echo json_encode(["status" => "error", "message" => "Action invalide"]);
     }
