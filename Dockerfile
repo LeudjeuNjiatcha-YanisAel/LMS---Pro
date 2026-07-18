@@ -13,7 +13,7 @@ RUN apt-get update && apt-get install -y \
     && docker-php-ext-install gd \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Activer mod_rewrite
+# Activer mod_rewrite et headers
 RUN a2enmod rewrite headers
 
 # Copier les fichiers du projet
@@ -25,7 +25,10 @@ RUN mkdir -p /var/www/html/api/uploads/pdf \
     && chown -R www-data:www-data /var/www/html/api/uploads \
     && chmod -R 775 /var/www/html/api/uploads
 
-# Configuration Apache
+# Rendre le script de démarrage exécutable
+RUN chmod +x /var/www/html/entrypoint.sh
+
+# Configuration Apache : autoriser .htaccess
 RUN echo '<Directory /var/www/html/>\n\
     Options Indexes FollowSymLinks\n\
     AllowOverride All\n\
@@ -35,4 +38,5 @@ RUN echo '<Directory /var/www/html/>\n\
 
 EXPOSE 80
 
-CMD ["apache2-foreground"]
+# Utiliser notre script de démarrage au lieu de lancer Apache directement
+ENTRYPOINT ["/var/www/html/entrypoint.sh"]
