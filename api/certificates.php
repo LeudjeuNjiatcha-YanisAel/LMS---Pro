@@ -15,8 +15,7 @@ $user_id = $_SESSION['user_id'];
 $role = $_SESSION['role'];
 $method = $_SERVER['REQUEST_METHOD'];
 
-// Assurer que la colonne status existe
-try { $pdo->exec("ALTER TABLE certificates ADD COLUMN status ENUM('pending', 'approved', 'rejected') DEFAULT 'pending'"); } catch (PDOException $e) {}
+// La colonne status est déjà définie dans le schéma PostgreSQL
 
 if ($method === 'GET' && $role === 'student') {
     // Liste des certificats de l'étudiant

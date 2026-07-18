@@ -7,12 +7,27 @@ services:
     dockerfilePath: ./Dockerfile
     envVars:
       - key: DB_HOST
-        sync: false
+        fromDatabase:
+          name: lms-pro-db
+          property: host
       - key: DB_NAME
-        sync: false
+        fromDatabase:
+          name: lms-pro-db
+          property: database
       - key: DB_USER
-        sync: false
+        fromDatabase:
+          name: lms-pro-db
+          property: user
       - key: DB_PASS
-        sync: false
+        fromDatabase:
+          name: lms-pro-db
+          property: password
       - key: DB_PORT
-        value: "3306"
+        fromDatabase:
+          name: lms-pro-db
+          property: port
+
+databases:
+  - name: lms-pro-db
+    databaseName: lms_db
+    plan: free

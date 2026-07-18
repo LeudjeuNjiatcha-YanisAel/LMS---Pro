@@ -24,7 +24,7 @@ if ($method === 'GET') {
         $stats['teachers'] = $pdo->query("SELECT COUNT(*) FROM users WHERE role_id = (SELECT id FROM roles WHERE name='teacher')")->fetchColumn();
         $stats['courses'] = $pdo->query("SELECT COUNT(*) FROM courses")->fetchColumn();
         
-        try { $pdo->exec("ALTER TABLE certificates ADD COLUMN status ENUM('pending', 'approved', 'rejected') DEFAULT 'pending'"); } catch(Exception $e){}
+        try { $pdo->exec("ALTER TABLE certificates ADD COLUMN IF NOT EXISTS status VARCHAR(10) DEFAULT 'pending'"); } catch(Exception $e){}
         
         $stats['certs_pending'] = $pdo->query("SELECT COUNT(*) FROM certificates WHERE status = 'pending'")->fetchColumn();
         $stats['certs_approved'] = $pdo->query("SELECT COUNT(*) FROM certificates WHERE status = 'approved'")->fetchColumn();
@@ -44,11 +44,11 @@ if ($method === 'GET') {
         $stmtModules = $pdo->query("
             SELECT c.id, c.title, u.first_name, u.last_name, 
                    COUNT(e.student_id) as student_count, 
-                   IFNULL(AVG(e.progress_percentage), 0) as avg_progress
+                   COALESCE(AVG(e.progress_percentage), 0) as avg_progress
             FROM courses c
             JOIN users u ON c.teacher_id = u.id
             LEFT JOIN enrollments e ON c.id = e.course_id
-            GROUP BY c.id
+            GROUP BY c.id, c.title, u.first_name, u.last_name
             ORDER BY student_count DESC
         ");
         $modules_progress = $stmtModules->fetchAll(PDO::FETCH_ASSOC);
@@ -191,7 +191,7 @@ elseif ($method === 'POST') {
 
         $hashed_password = password_hash($password, PASSWORD_DEFAULT);
 
-        $stmt = $pdo->prepare("INSERT INTO users (first_name, last_name, email, password, role_id) VALUES (:fn, :ln, :em, :pw, :rid)");
+        $stmt = $pdo->prepare("INSERT INTO users (first_name, last_name, email, password_hash, role_id) VALUES (:fn, :ln, :em, :pw, :rid)");
         $stmt->execute([
             'fn' => $first_name,
             'ln' => $last_name,

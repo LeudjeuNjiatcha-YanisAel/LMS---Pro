@@ -23,22 +23,13 @@ if ($method === 'POST') {
         $course_id = $_POST['course_id'] ?? null;
 
         try {
-            // Auto-create table if missing
-            $pdo->exec("CREATE TABLE IF NOT EXISTS live_sessions (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                teacher_id INT NOT NULL,
-                course_id INT NULL,
-                session_code VARCHAR(50) NOT NULL UNIQUE,
-                status ENUM('active', 'ended') DEFAULT 'active',
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (teacher_id) REFERENCES users(id) ON DELETE CASCADE
-            )");
-
+            // La table live_sessions est créée dans le schema PostgreSQL
+            // On insère directement
             $stmt = $pdo->prepare("INSERT INTO live_sessions (teacher_id, course_id, session_code) VALUES (:teacher_id, :course_id, :code)");
             $stmt->execute([
                 'teacher_id' => $user_id,
-                'course_id' => $course_id ?: null,
-                'code' => $session_code
+                'course_id'  => $course_id ?: null,
+                'code'       => $session_code
             ]);
             echo json_encode(["status" => "success", "session_code" => $session_code]);
         } catch (\Throwable $e) {

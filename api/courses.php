@@ -2,7 +2,7 @@
 // api/courses.php : Gère les requêtes liées aux cours (Création, Lecture)
 
 session_start(); // On récupère la session
-require 'db.php'; // On inclut la connexion PDO à MySQL
+require 'db.php'; // On inclut la connexion PDO à la base de données
 
 header('Content-Type: application/json'); // On définit la réponse en JSON
 
@@ -32,7 +32,7 @@ if ($method === 'GET') {
             LEFT JOIN categories cat ON c.category_id = cat.id
             LEFT JOIN lessons l ON c.id = l.course_id
             WHERE c.teacher_id = :teacher_id
-            GROUP BY c.id
+            GROUP BY c.id, c.title, cat.name, c.created_at
             ORDER BY c.created_at DESC
         ");
         $stmt->execute(['teacher_id' => $user_id]); // On exécute avec l'ID du prof
@@ -48,7 +48,7 @@ if ($method === 'GET') {
             FROM courses c
             LEFT JOIN categories cat ON c.category_id = cat.id
             LEFT JOIN lessons l ON c.id = l.course_id
-            GROUP BY c.id
+            GROUP BY c.id, c.title, c.description, cat.name, c.created_at
             ORDER BY c.created_at DESC
         ");
         $stmt->execute();
@@ -96,7 +96,7 @@ if ($method === 'GET') {
     elseif ($action === 'get_teacher_results' && $role === 'teacher') {
         $stmt = $pdo->prepare("
             SELECT u.first_name, u.last_name, c.title as course_title, e.progress_percentage,
-                   IFNULL(cert.status, 'Non demandé') as cert_status
+                   COALESCE(cert.status, 'Non demandé') as cert_status
             FROM enrollments e
             JOIN users u ON e.student_id = u.id
             JOIN courses c ON e.course_id = c.id
@@ -123,7 +123,7 @@ if ($method === 'GET') {
     elseif ($action === 'list_my_students' && $role === 'teacher') {
         $stmt = $pdo->prepare("
             SELECT u.first_name, u.last_name, c.title as course_title, e.progress_percentage, e.enrolled_at,
-                   IFNULL(cert.status, 'Aucun') as cert_status
+                   COALESCE(cert.status, 'Aucun') as cert_status
             FROM enrollments e
             JOIN users u ON e.student_id = u.id
             JOIN courses c ON e.course_id = c.id
@@ -233,11 +233,6 @@ elseif ($method === 'POST') {
         }
 
         try {
-            // Optionnel : s'assurer que la colonne total_lessons existe
-            try {
-                $pdo->exec("ALTER TABLE courses ADD COLUMN total_lessons INT DEFAULT 1");
-            } catch (PDOException $e) { }
-
             $stmt = $pdo->prepare("
                 INSERT INTO courses (title, category_id, teacher_id, description, total_lessons) 
                 VALUES (:title, :cat, :teacher, :desc, :total_lessons)

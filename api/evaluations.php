@@ -46,7 +46,7 @@ if ($method === 'GET') {
         $questions = $stmtQ->fetchAll(PDO::FETCH_ASSOC);
 
         foreach ($questions as &$q) {
-            $stmtC = $pdo->prepare("SELECT id, choice_text, is_correct FROM choices WHERE question_id = :q_id ORDER BY RAND()");
+            $stmtC = $pdo->prepare("SELECT id, choice_text, is_correct FROM choices WHERE question_id = :q_id ORDER BY RANDOM()");
             $stmtC->execute(['q_id' => $q['id']]);
             $q['choices'] = $stmtC->fetchAll(PDO::FETCH_ASSOC);
         }
@@ -84,17 +84,6 @@ if ($method === 'GET') {
         echo json_encode(["status" => "success", "evaluation" => $eval]);
     }
     elseif ($action === 'list_scheduled') {
-        // Auto-add missing columns if they don't exist
-        try {
-            $pdo->exec("ALTER TABLE evaluations ADD COLUMN scheduled_date DATETIME NULL DEFAULT NULL");
-        } catch (PDOException $e) { /* column already exists */ }
-        try {
-            $pdo->exec("ALTER TABLE evaluations ADD COLUMN course_id INT NULL DEFAULT NULL");
-        } catch (PDOException $e) { /* column already exists */ }
-        try {
-            $pdo->exec("ALTER TABLE evaluations ADD COLUMN is_final_exam BOOLEAN DEFAULT FALSE");
-        } catch (PDOException $e) { /* column already exists */ }
-
         try {
             // Liste les évaluations programmées
             if ($role === 'teacher') {
@@ -155,12 +144,12 @@ elseif ($method === 'POST') {
         }
 
         try {
-            try { $pdo->exec("ALTER TABLE evaluations ADD COLUMN eval_type VARCHAR(50) DEFAULT 'standard'"); } catch (PDOException $e) {}
-            try { $pdo->exec("ALTER TABLE evaluations ADD COLUMN time_limit_per_question INT DEFAULT 0"); } catch (PDOException $e) {}
+            try { $pdo->exec("ALTER TABLE evaluations ADD COLUMN IF NOT EXISTS eval_type VARCHAR(50) DEFAULT 'standard'"); } catch (PDOException $e) {}
+            try { $pdo->exec("ALTER TABLE evaluations ADD COLUMN IF NOT EXISTS time_limit_per_question INT DEFAULT 0"); } catch (PDOException $e) {}
 
             $pdo->beginTransaction();
 
-            $stmt = $pdo->prepare("INSERT INTO evaluations (lesson_id, title, required_score, eval_type, time_limit_per_question) VALUES (:lesson_id, :title, :score, :eval_type, :time_limit)");
+            $stmt = $pdo->prepare("INSERT INTO evaluations (lesson_id, title, required_score, eval_type, time_limit_per_question) VALUES (:lesson_id, :title, :score, :eval_type, :time_limit) RETURNING id");
             $stmt->execute([
                 'lesson_id' => $lesson_id, 
                 'title' => $eval_title, 
@@ -168,12 +157,12 @@ elseif ($method === 'POST') {
                 'eval_type' => $eval_type,
                 'time_limit' => $time_limit
             ]);
-            $eval_id = $pdo->lastInsertId();
+            $eval_id = $stmt->fetchColumn();
 
             foreach ($questionsArray as $q) {
-                $stmtQ = $pdo->prepare("INSERT INTO questions (evaluation_id, question_text, type) VALUES (:eval_id, :text, 'multiple_choice')");
+                $stmtQ = $pdo->prepare("INSERT INTO questions (evaluation_id, question_text, type) VALUES (:eval_id, :text, 'multiple_choice') RETURNING id");
                 $stmtQ->execute(['eval_id' => $eval_id, 'text' => $q['q']]);
-                $question_id = $pdo->lastInsertId();
+                $question_id = $stmtQ->fetchColumn();
 
                 $stmtC = $pdo->prepare("INSERT INTO choices (question_id, choice_text, is_correct) VALUES (:q_id, :text, :is_correct)");
                 
@@ -207,15 +196,14 @@ elseif ($method === 'POST') {
         }
         
         try {
-            try { $pdo->exec("ALTER TABLE evaluations ADD COLUMN is_final_exam BOOLEAN DEFAULT FALSE"); } catch (PDOException $e) {}
-            try { $pdo->exec("ALTER TABLE evaluations ADD COLUMN eval_type VARCHAR(50) DEFAULT 'standard'"); } catch (PDOException $e) {}
-            try { $pdo->exec("ALTER TABLE evaluations ADD COLUMN time_limit_per_question INT DEFAULT 0"); } catch (PDOException $e) {}
-            try { $pdo->exec("ALTER TABLE evaluations MODIFY lesson_id INT NULL"); } catch (PDOException $e) {}
-            try { $pdo->exec("ALTER TABLE evaluations ADD COLUMN end_date DATETIME NULL DEFAULT NULL"); } catch (PDOException $e) {}
+            try { $pdo->exec("ALTER TABLE evaluations ADD COLUMN IF NOT EXISTS is_final_exam BOOLEAN DEFAULT FALSE"); } catch (PDOException $e) {}
+            try { $pdo->exec("ALTER TABLE evaluations ADD COLUMN IF NOT EXISTS eval_type VARCHAR(50) DEFAULT 'standard'"); } catch (PDOException $e) {}
+            try { $pdo->exec("ALTER TABLE evaluations ADD COLUMN IF NOT EXISTS time_limit_per_question INT DEFAULT 0"); } catch (PDOException $e) {}
+            try { $pdo->exec("ALTER TABLE evaluations ADD COLUMN IF NOT EXISTS end_date TIMESTAMP NULL DEFAULT NULL"); } catch (PDOException $e) {}
 
             $pdo->beginTransaction();
 
-            $stmt = $pdo->prepare("INSERT INTO evaluations (course_id, title, scheduled_date, end_date, is_final_exam, required_score, eval_type, time_limit_per_question) VALUES (:course_id, :title, :scheduled_date, :end_date, :is_final_exam, 100, :eval_type, :time_limit)");
+            $stmt = $pdo->prepare("INSERT INTO evaluations (course_id, title, scheduled_date, end_date, is_final_exam, required_score, eval_type, time_limit_per_question) VALUES (:course_id, :title, :scheduled_date, :end_date, :is_final_exam, 100, :eval_type, :time_limit) RETURNING id");
             $stmt->execute([
                 'course_id' => $course_id,
                 'title' => $title,
@@ -226,12 +214,12 @@ elseif ($method === 'POST') {
                 'time_limit' => $time_limit
             ]);
             
-            $eval_id = $pdo->lastInsertId();
+            $eval_id = $stmt->fetchColumn();
 
             foreach ($questionsArray as $q) {
-                $stmtQ = $pdo->prepare("INSERT INTO questions (evaluation_id, question_text, type) VALUES (:eval_id, :text, 'multiple_choice')");
+                $stmtQ = $pdo->prepare("INSERT INTO questions (evaluation_id, question_text, type) VALUES (:eval_id, :text, 'multiple_choice') RETURNING id");
                 $stmtQ->execute(['eval_id' => $eval_id, 'text' => $q['q']]);
-                $question_id = $pdo->lastInsertId();
+                $question_id = $stmtQ->fetchColumn();
 
                 $stmtC = $pdo->prepare("INSERT INTO choices (question_id, choice_text, is_correct) VALUES (:q_id, :text, :is_correct)");
                 $stmtC->execute(['q_id' => $question_id, 'text' => $q['c'], 'is_correct' => 1]);
