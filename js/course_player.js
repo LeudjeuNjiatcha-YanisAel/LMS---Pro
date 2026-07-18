@@ -291,63 +291,141 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
             apiUrl += '&lesson_id=' + lessonId;
         }
-        
+
         fetch(apiUrl)
         .then(res => res.json())
         .then(evalResponse => {
-            if (evalResponse.status === 'success' && evalResponse.evaluation) {
-                const evalData = evalResponse.evaluation;
-                window.currentEvalData = evalData;
-                evaluationSection.classList.remove('hidden');
-                document.getElementById('evalTitleHeader').textContent = evalData.title;
-                
-                if (evalData.user_result) {
-                    document.getElementById('evalDesc').innerHTML = `Vous avez déjà passé cette évaluation.<br>Score obtenu : <strong style="color:var(--text-main);">${evalData.user_result.score}%</strong> (${evalData.user_result.passed ? 'Réussi' : 'Échoué'})`;
-                    const btn = document.getElementById('btnSubmitEval');
-                    if(btn) {
-                        if (evalData.user_result.passed) {
-                            btn.textContent = "Retour au tableau de bord";
-                            btn.onclick = (e) => {
-                                e.preventDefault();
-                                window.location.href = "student_dashboard.html";
-                            };
-                        } else {
-                            btn.style.display = 'none';
-                        }
-                    }
-                    setTimeout(() => {
-                        document.querySelectorAll('.eval-option input').forEach(input => input.disabled = true);
-                    }, 100);
-                } else {
-                    document.getElementById('evalDesc').textContent = `Évaluation finale. Score requis : ${evalData.required_score}%. Vous devez valider pour obtenir le certificat.`;
-                }
-                
-                const quizContainer = document.getElementById('quizContainer');
-                if(quizContainer) quizContainer.innerHTML = '';
-                
-                evalData.questions.forEach((q, i) => {
-                    let block = document.createElement('div');
-                    block.style.marginBottom = '25px'; block.style.padding = '15px'; block.style.background = 'rgba(255,255,255,0.02)'; block.style.borderRadius = '10px'; block.style.border = '1px solid var(--border-color)';
-                    let qTitle = document.createElement('div'); qTitle.className = 'eval-question'; qTitle.style.marginBottom = '15px'; qTitle.textContent = `${i + 1}. ${q.question_text}`; block.appendChild(qTitle);
-                    let optionsDiv = document.createElement('div'); optionsDiv.className = 'eval-options';
-                    q.choices.forEach(choice => {
-                        let label = document.createElement('label'); label.className = 'eval-option';
-                        label.innerHTML = `<input type="radio" name="question_${q.id}" value="${choice.is_correct}"> <span>${choice.choice_text}</span>`;
-                        optionsDiv.appendChild(label);
-                    });
-                    block.appendChild(optionsDiv);
-                    if(quizContainer) quizContainer.appendChild(block);
-                });
-            } else {
-                // Pas d'éval
+            if (evalResponse.status !== 'success' || !evalResponse.evaluation) {
+                // Pas d'eval disponible
                 evaluationSection.classList.remove('hidden');
                 document.getElementById('evalTitleHeader').textContent = "Fin du cours";
-                document.getElementById('evalDesc').textContent = "Il n'y a pas d'évaluation finale pour ce cours.";
-                if(document.getElementById('quizContainer')) document.getElementById('quizContainer').innerHTML = '';
-                if(document.getElementById('btnSubmitEval')) {
+                document.getElementById('evalDesc').textContent = "Il n'y a pas d'evaluation finale pour ce cours.";
+                if (document.getElementById('quizContainer')) document.getElementById('quizContainer').innerHTML = '';
+                if (document.getElementById('btnSubmitEval')) {
                     document.getElementById('btnSubmitEval').textContent = "Terminer le cours";
                     window.currentEvalData = { is_empty: true, required_score: 0, questions: [] };
                 }
+                return;
+            }
+
+            const evalData = evalResponse.evaluation;
+            window.currentEvalData = evalData;
+            evaluationSection.classList.remove('hidden');
+            document.getElementById('evalTitleHeader').textContent = evalData.title;
+
+            // CAS 1 : L'etudiant a deja soumis
+            if (evalData.user_result) {
+                const quizContainer = document.getElementById('quizContainer');
+                if (quizContainer) quizContainer.innerHTML = '';
+                const btn = document.getElementById('btnSubmitEval');
+
+                if (evalData.end_date && !evalData.is_ended) {
+                    document.getElementById('evalDesc').innerHTML =
+                        '\u2705 Vos r\u00e9ponses ont \u00e9t\u00e9 enregistr\u00e9es.<br>R\u00e9sultat disponible le <strong>' + new Date(evalData.end_date).toLocaleString() + '</strong>.';
+                } else {
+                    const scoreRounded = parseFloat(evalData.user_result.score).toFixed(0);
+                    const statusLabel = evalData.user_result.passed == 1
+                        ? '<span style="color:#10b981;">\u2705 R\u00e9ussi</span>'
+                        : '<span style="color:#ef4444;">\u274c \u00c9chou\u00e9</span>';
+                    document.getElementById('evalDesc').innerHTML =
+                        '\u00c9valuation d\u00e9j\u00e0 pass\u00e9e.<br>Score : <strong style="font-size:1.2rem;">' + scoreRounded + '%</strong> \u2014 ' + statusLabel;
+                }
+
+                if (btn) {
+                    btn.textContent = "Retour au tableau de bord";
+                    btn.style.display = '';
+                    btn.onclick = (e) => {
+                        e.preventDefault();
+                        window.location.href = "student_dashboard.html";
+                    };
+                }
+                return;
+            }
+
+            // CAS 2 : Evaluation inactive (pas encore commencee ou expiree)
+            if (evalData.is_active === false) {
+                const quizContainer = document.getElementById('quizContainer');
+                if (quizContainer) quizContainer.innerHTML = '';
+                const btn = document.getElementById('btnSubmitEval');
+                if (btn) btn.style.display = 'none';
+
+                if (evalData.is_ended) {
+                    document.getElementById('evalDesc').innerHTML =
+                        '<span style="color:#ef4444;">\u26d4 Cette \u00e9valuation est termin\u00e9e depuis le ' + new Date(evalData.end_date).toLocaleString() + '.</span>';
+                } else {
+                    document.getElementById('evalDesc').innerHTML =
+                        '<span style="color:#f59e0b;">\ud83d\udd50 D\u00e9marrage le ' + new Date(evalData.scheduled_date).toLocaleString() + '.</span>';
+                }
+                return;
+            }
+
+            // CAS 3 : Evaluation active, a passer
+            const isTeleEval = (evalData.eval_type === 'tele-eval');
+            const timeLimit  = parseInt(evalData.time_limit_per_question) || 30;
+
+            document.getElementById('evalDesc').textContent = isTeleEval
+                ? ('T\u00e9l\u00e9-\u00e9valuation : ' + timeLimit + 's par question. R\u00e9pondez vite !')
+                : ('Score requis : ' + evalData.required_score + '%. R\u00e9pondez \u00e0 toutes les questions puis validez.');
+
+            const quizContainer = document.getElementById('quizContainer');
+            if (quizContainer) quizContainer.innerHTML = '';
+
+            if (isTeleEval) {
+                const timerHtml = '<div id="teleEvalTimer" style="background:linear-gradient(135deg,rgba(239,68,68,0.12),rgba(245,158,11,0.12));border:1px solid rgba(239,68,68,0.35);border-radius:12px;padding:16px 20px;margin-bottom:20px;text-align:center;">'
+                    + '<div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:10px;">'
+                    + '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#ef4444" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>'
+                    + '<span style="font-size:1.5rem;font-weight:bold;color:#ef4444;"><span id="timerCountdown">' + timeLimit + '</span>s</span>'
+                    + '<span style="font-size:0.85rem;color:var(--text-muted);">par question</span>'
+                    + '</div>'
+                    + '<div id="timerProgressBar" style="height:8px;background:rgba(255,255,255,0.08);border-radius:4px;overflow:hidden;">'
+                    + '<div id="timerFill" style="height:100%;width:100%;background:linear-gradient(90deg,#10b981,#f59e0b);border-radius:4px;transition:width 0.9s linear;"></div>'
+                    + '</div>'
+                    + '<div style="margin-top:8px;font-size:0.85rem;color:var(--text-muted);">Question <strong id="teleQNum">1</strong> / ' + evalData.questions.length + '</div>'
+                    + '</div>';
+                quizContainer.insertAdjacentHTML('beforeend', timerHtml);
+                const btn = document.getElementById('btnSubmitEval');
+                if (btn) btn.style.display = 'none';
+            }
+
+            window.currentEvalBlocks = [];
+            evalData.questions.forEach((q, i) => {
+                const block = document.createElement('div');
+                block.className = 'eval-q-block';
+                block.id = 'eval_q_' + i;
+                block.style.cssText = 'margin-bottom:25px;padding:18px;background:rgba(255,255,255,0.02);border-radius:10px;border:1px solid var(--border-color);';
+                if (isTeleEval) block.style.display = (i === 0) ? 'block' : 'none';
+
+                const qTitle = document.createElement('div');
+                qTitle.className = 'eval-question';
+                qTitle.style.cssText = 'margin-bottom:15px;font-weight:600;font-size:1rem;line-height:1.5;';
+                qTitle.textContent = 'Question ' + (i + 1) + '/' + evalData.questions.length + ' : ' + q.question_text;
+                block.appendChild(qTitle);
+
+                const optionsDiv = document.createElement('div');
+                optionsDiv.className = 'eval-options';
+                q.choices.forEach(choice => {
+                    const label = document.createElement('label');
+                    label.className = 'eval-option';
+                    label.innerHTML = '<input type="radio" name="question_' + q.id + '" value="' + choice.is_correct + '"> <span>' + choice.choice_text + '</span>';
+                    optionsDiv.appendChild(label);
+                });
+                block.appendChild(optionsDiv);
+
+                if (isTeleEval) {
+                    const nextBtn = document.createElement('button');
+                    nextBtn.type = 'button';
+                    nextBtn.style.cssText = 'margin-top:15px;padding:10px 24px;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:white;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:0.9rem;';
+                    nextBtn.textContent = (i === evalData.questions.length - 1) ? '\u2705 Terminer l\'evaluation' : 'Question suivante \u2192';
+                    nextBtn.onclick = () => window.nextTeleEvalQuestion(i, timeLimit);
+                    block.appendChild(nextBtn);
+                }
+
+                quizContainer.appendChild(block);
+                window.currentEvalBlocks.push(block);
+            });
+
+            if (isTeleEval && evalData.questions.length > 0) {
+                setTimeout(() => window.startTeleEvalTimer(0, timeLimit), 150);
             }
         });
     }
@@ -368,8 +446,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     const selected = document.querySelector(`input[name="question_${q.id}"]:checked`);
                     if (selected) { answered++; if (selected.value === "1") score++; }
                 });
-                if (answered < questions.length) { Swal.fire('Attention', 'Veuillez répondre à toutes les questions.', 'warning'); return; }
-                scoreObtained = (score / questions.length) * 100;
+                // Pour la télé-évaluation, on ne bloque pas si certaines questions n'ont pas été répondues
+                const isTeleEvalSubmit = evalData.eval_type === 'tele-eval';
+                if (!isTeleEvalSubmit && answered < questions.length) {
+                    Swal.fire('Attention', 'Veuillez répondre à toutes les questions.', 'warning'); return;
+                }
+                scoreObtained = questions.length > 0 ? (score / questions.length) * 100 : 100;
                 required = parseInt(evalData.required_score || 100);
                 passed = scoreObtained >= required;
             }
@@ -383,6 +465,21 @@ document.addEventListener('DOMContentLoaded', function() {
             
             fetch('api/evaluations.php', { method: 'POST', body: evalFd })
             .then(() => {
+                if (evalData.end_date && !evalData.is_ended) {
+                    // Masquer la note car l'évaluation n'est pas encore terminée globalement
+                    Swal.fire({
+                        title: 'Réponses enregistrées',
+                        text: `Vos réponses ont bien été soumises. Votre résultat sera disponible le ${new Date(evalData.end_date).toLocaleString()}.`,
+                        icon: 'success',
+                        confirmButtonText: 'Retour au tableau de bord',
+                        confirmButtonColor: '#10b981',
+                        allowOutsideClick: false
+                    }).then(() => {
+                        window.location.href = "student_dashboard.html";
+                    });
+                    return;
+                }
+
                 if (!passed) {
                     Swal.fire('Échec', `Score : ${scoreObtained.toFixed(0)}%. Requis : ${required}%. L'évaluation est terminée.`, 'error').then(() => {
                         window.location.reload();
@@ -436,4 +533,61 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
     }
+
+    // Gestion du timer de télé-évaluation
+    window.teleEvalInterval = null;
+    window.startTeleEvalTimer = function(index, timeLimit) {
+        let timeLeft = timeLimit;
+        const timerSpan = document.getElementById('timerCountdown');
+        const timerFill = document.getElementById('timerFill');
+        const teleQNum  = document.getElementById('teleQNum');
+        if(!timerSpan) return;
+        
+        timerSpan.textContent = timeLeft;
+        if (timerFill) timerFill.style.width = '100%';
+        if (teleQNum) teleQNum.textContent = index + 1;
+        
+        clearInterval(window.teleEvalInterval);
+        window.teleEvalInterval = setInterval(() => {
+            timeLeft--;
+            timerSpan.textContent = timeLeft;
+            // Mettre à jour la barre de progression
+            if (timerFill) {
+                const pct = (timeLeft / timeLimit) * 100;
+                timerFill.style.width = pct + '%';
+                timerFill.style.background = pct > 50
+                    ? 'linear-gradient(90deg,#10b981,#f59e0b)'
+                    : pct > 25
+                        ? 'linear-gradient(90deg,#f59e0b,#ef4444)'
+                        : '#ef4444';
+            }
+            if (timeLeft <= 0) {
+                clearInterval(window.teleEvalInterval);
+                window.nextTeleEvalQuestion(index, timeLimit);
+            }
+        }, 1000);
+    };
+
+    window.nextTeleEvalQuestion = function(currentIndex, timeLimit) {
+        clearInterval(window.teleEvalInterval);
+        const currentBlock = window.currentEvalBlocks[currentIndex];
+        if (currentBlock) currentBlock.style.display = 'none';
+        
+        const nextIndex = currentIndex + 1;
+        if (nextIndex < window.currentEvalBlocks.length) {
+            window.currentEvalBlocks[nextIndex].style.display = 'block';
+            window.startTeleEvalTimer(nextIndex, timeLimit);
+        } else {
+            // Fin de la télé-évaluation, on cache le timer et on simule un submit
+            document.getElementById('teleEvalTimer').style.display = 'none';
+            const evalForm = document.getElementById('evaluationForm');
+            if (evalForm) {
+                if (typeof evalForm.requestSubmit === 'function') {
+                    evalForm.requestSubmit();
+                } else {
+                    evalForm.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+                }
+            }
+        }
+    };
 });

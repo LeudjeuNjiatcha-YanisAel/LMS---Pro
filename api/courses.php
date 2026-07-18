@@ -108,6 +108,32 @@ if ($method === 'GET') {
         $results = $stmt->fetchAll();
         echo json_encode(["status" => "success", "results" => $results]);
     }
+    // Alias 'list' = liste des cours du prof (pour peupler le select Prog.Eval)
+    elseif ($action === 'list' && $role === 'teacher') {
+        $stmt = $pdo->prepare("
+            SELECT c.id, c.title
+            FROM courses c
+            WHERE c.teacher_id = :teacher_id
+            ORDER BY c.created_at DESC
+        ");
+        $stmt->execute(['teacher_id' => $user_id]);
+        echo json_encode(["status" => "success", "courses" => $stmt->fetchAll(PDO::FETCH_ASSOC)]);
+    }
+    // Liste des étudiants inscrits aux cours de ce professeur
+    elseif ($action === 'list_my_students' && $role === 'teacher') {
+        $stmt = $pdo->prepare("
+            SELECT u.first_name, u.last_name, c.title as course_title, e.progress_percentage, e.enrolled_at,
+                   IFNULL(cert.status, 'Aucun') as cert_status
+            FROM enrollments e
+            JOIN users u ON e.student_id = u.id
+            JOIN courses c ON e.course_id = c.id
+            LEFT JOIN certificates cert ON cert.student_id = u.id AND cert.course_id = c.id
+            WHERE c.teacher_id = :teacher_id
+            ORDER BY e.enrolled_at DESC
+        ");
+        $stmt->execute(['teacher_id' => $user_id]);
+        echo json_encode(["status" => "success", "students" => $stmt->fetchAll(PDO::FETCH_ASSOC)]);
+    }
     else {
         echo json_encode(["status" => "error", "message" => "Action invalide"]);
     }
@@ -229,21 +255,6 @@ elseif ($method === 'POST') {
         } catch(PDOException $e) {
             echo json_encode(["status" => "error", "message" => "Erreur BDD: " . $e->getMessage()]);
         }
-    }
-    // === NOUVEL ENDPOINT : Liste des étudiants inscrits aux cours de ce professeur ===
-    elseif ($action === 'list_my_students' && $role === 'teacher') {
-        $stmt = $pdo->prepare("
-            SELECT u.first_name, u.last_name, c.title as course_title, e.progress_percentage, e.enrolled_at,
-                   IFNULL(cert.status, 'Aucun') as cert_status
-            FROM enrollments e
-            JOIN users u ON e.student_id = u.id
-            JOIN courses c ON e.course_id = c.id
-            LEFT JOIN certificates cert ON cert.student_id = u.id AND cert.course_id = c.id
-            WHERE c.teacher_id = :teacher_id
-            ORDER BY e.enrolled_at DESC
-        ");
-        $stmt->execute(['teacher_id' => $user_id]);
-        echo json_encode(["status" => "success", "students" => $stmt->fetchAll(PDO::FETCH_ASSOC)]);
     }
     elseif ($action === 'delete' && $role === 'teacher') {
         $course_id = $_POST['course_id'] ?? null;

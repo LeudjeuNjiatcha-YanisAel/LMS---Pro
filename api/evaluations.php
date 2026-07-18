@@ -27,10 +27,10 @@ if ($method === 'GET') {
 
         // Fetch eval
         if ($eval_id) {
-            $stmt = $pdo->prepare("SELECT id, title, required_score FROM evaluations WHERE id = :eval_id LIMIT 1");
+            $stmt = $pdo->prepare("SELECT id, title, required_score, eval_type, time_limit_per_question, scheduled_date, end_date FROM evaluations WHERE id = :eval_id LIMIT 1");
             $stmt->execute(['eval_id' => $eval_id]);
         } else {
-            $stmt = $pdo->prepare("SELECT id, title, required_score FROM evaluations WHERE lesson_id = :lesson_id LIMIT 1");
+            $stmt = $pdo->prepare("SELECT id, title, required_score, eval_type, time_limit_per_question, scheduled_date, end_date FROM evaluations WHERE lesson_id = :lesson_id LIMIT 1");
             $stmt->execute(['lesson_id' => $lesson_id]);
         }
         $eval = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -60,6 +60,25 @@ if ($method === 'GET') {
 
         if ($result) {
             $eval['user_result'] = $result;
+        }
+
+        // Vérifier si l'évaluation est toujours ouverte ou terminée
+        $now = new DateTime();
+        $eval['is_active'] = true;
+        $eval['is_ended'] = false;
+        
+        if (!empty($eval['end_date'])) {
+            $endDate = new DateTime($eval['end_date']);
+            if ($now > $endDate) {
+                $eval['is_active'] = false;
+                $eval['is_ended'] = true;
+            }
+        }
+        if (!empty($eval['scheduled_date'])) {
+            $startDate = new DateTime($eval['scheduled_date']);
+            if ($now < $startDate) {
+                $eval['is_active'] = false;
+            }
         }
 
         echo json_encode(["status" => "success", "evaluation" => $eval]);
@@ -95,7 +114,7 @@ if ($method === 'GET') {
             } else {
                 // Student: show all evaluations for enrolled courses
                 $stmt = $pdo->prepare("
-                    SELECT e.id, e.title, e.scheduled_date, 
+                    SELECT e.id, e.title, e.scheduled_date, e.end_date, 
                            COALESCE(e.course_id, l.course_id) as course_id,
                            COALESCE(c1.title, c2.title) as course_title, 
                            r.score, r.passed 
@@ -105,6 +124,7 @@ if ($method === 'GET') {
                     LEFT JOIN courses c2 ON l.course_id = c2.id
                     LEFT JOIN results r ON r.evaluation_id = e.id AND r.student_id = :user_id
                     INNER JOIN enrollments en ON en.course_id = COALESCE(e.course_id, l.course_id) AND en.student_id = :user_id2
+                    WHERE e.end_date IS NULL OR e.end_date >= NOW()
                     ORDER BY e.scheduled_date ASC, e.id ASC
                 ");
                 $stmt->execute(['user_id' => $user_id, 'user_id2' => $user_id]);
@@ -123,6 +143,8 @@ elseif ($method === 'POST') {
         $lesson_id = $_POST['lesson_id'] ?? null;
         $eval_title = trim($_POST['eval_title'] ?? '');
         $required_score = $_POST['required_score'] ?? 100;
+        $eval_type = $_POST['eval_type'] ?? 'standard';
+        $time_limit = (int)($_POST['time_limit_per_question'] ?? 0);
         $questions_json = $_POST['questions_json'] ?? '[]';
 
         $questionsArray = json_decode($questions_json, true);
@@ -133,10 +155,19 @@ elseif ($method === 'POST') {
         }
 
         try {
+            try { $pdo->exec("ALTER TABLE evaluations ADD COLUMN eval_type VARCHAR(50) DEFAULT 'standard'"); } catch (PDOException $e) {}
+            try { $pdo->exec("ALTER TABLE evaluations ADD COLUMN time_limit_per_question INT DEFAULT 0"); } catch (PDOException $e) {}
+
             $pdo->beginTransaction();
 
-            $stmt = $pdo->prepare("INSERT INTO evaluations (lesson_id, title, required_score) VALUES (:lesson_id, :title, :score)");
-            $stmt->execute(['lesson_id' => $lesson_id, 'title' => $eval_title, 'score' => $required_score]);
+            $stmt = $pdo->prepare("INSERT INTO evaluations (lesson_id, title, required_score, eval_type, time_limit_per_question) VALUES (:lesson_id, :title, :score, :eval_type, :time_limit)");
+            $stmt->execute([
+                'lesson_id' => $lesson_id, 
+                'title' => $eval_title, 
+                'score' => $required_score,
+                'eval_type' => $eval_type,
+                'time_limit' => $time_limit
+            ]);
             $eval_id = $pdo->lastInsertId();
 
             foreach ($questionsArray as $q) {
@@ -149,6 +180,7 @@ elseif ($method === 'POST') {
                 $stmtC->execute(['q_id' => $question_id, 'text' => $q['c'], 'is_correct' => 1]);
                 if (!empty($q['w1'])) $stmtC->execute(['q_id' => $question_id, 'text' => $q['w1'], 'is_correct' => 0]);
                 if (!empty($q['w2'])) $stmtC->execute(['q_id' => $question_id, 'text' => $q['w2'], 'is_correct' => 0]);
+                if (!empty($q['w3'])) $stmtC->execute(['q_id' => $question_id, 'text' => $q['w3'], 'is_correct' => 0]);
             }
 
             $pdo->commit();
@@ -162,7 +194,10 @@ elseif ($method === 'POST') {
         $course_id = $_POST['course_id'] ?? null;
         $title = trim($_POST['title'] ?? '');
         $eval_date = $_POST['eval_date'] ?? null;
+        $end_date = !empty($_POST['end_date']) ? $_POST['end_date'] : null;
         $is_final_exam = isset($_POST['is_final_exam']) ? 1 : 0;
+        $eval_type = $_POST['eval_type'] ?? 'standard';
+        $time_limit = (int)($_POST['time_limit_per_question'] ?? 0);
         $questions_json = $_POST['questions_json'] ?? '[]';
         $questionsArray = json_decode($questions_json, true);
         
@@ -172,18 +207,23 @@ elseif ($method === 'POST') {
         }
         
         try {
-            try {
-                $pdo->exec("ALTER TABLE evaluations ADD COLUMN is_final_exam BOOLEAN DEFAULT FALSE");
-            } catch (PDOException $e) {}
+            try { $pdo->exec("ALTER TABLE evaluations ADD COLUMN is_final_exam BOOLEAN DEFAULT FALSE"); } catch (PDOException $e) {}
+            try { $pdo->exec("ALTER TABLE evaluations ADD COLUMN eval_type VARCHAR(50) DEFAULT 'standard'"); } catch (PDOException $e) {}
+            try { $pdo->exec("ALTER TABLE evaluations ADD COLUMN time_limit_per_question INT DEFAULT 0"); } catch (PDOException $e) {}
+            try { $pdo->exec("ALTER TABLE evaluations MODIFY lesson_id INT NULL"); } catch (PDOException $e) {}
+            try { $pdo->exec("ALTER TABLE evaluations ADD COLUMN end_date DATETIME NULL DEFAULT NULL"); } catch (PDOException $e) {}
 
             $pdo->beginTransaction();
 
-            $stmt = $pdo->prepare("INSERT INTO evaluations (course_id, title, scheduled_date, is_final_exam, required_score) VALUES (:course_id, :title, :scheduled_date, :is_final_exam, 100)");
+            $stmt = $pdo->prepare("INSERT INTO evaluations (course_id, title, scheduled_date, end_date, is_final_exam, required_score, eval_type, time_limit_per_question) VALUES (:course_id, :title, :scheduled_date, :end_date, :is_final_exam, 100, :eval_type, :time_limit)");
             $stmt->execute([
                 'course_id' => $course_id,
                 'title' => $title,
                 'scheduled_date' => $eval_date,
-                'is_final_exam' => $is_final_exam
+                'end_date' => $end_date,
+                'is_final_exam' => $is_final_exam,
+                'eval_type' => $eval_type,
+                'time_limit' => $time_limit
             ]);
             
             $eval_id = $pdo->lastInsertId();
@@ -197,6 +237,7 @@ elseif ($method === 'POST') {
                 $stmtC->execute(['q_id' => $question_id, 'text' => $q['c'], 'is_correct' => 1]);
                 if (!empty($q['w1'])) $stmtC->execute(['q_id' => $question_id, 'text' => $q['w1'], 'is_correct' => 0]);
                 if (!empty($q['w2'])) $stmtC->execute(['q_id' => $question_id, 'text' => $q['w2'], 'is_correct' => 0]);
+                if (!empty($q['w3'])) $stmtC->execute(['q_id' => $question_id, 'text' => $q['w3'], 'is_correct' => 0]);
             }
 
             $pdo->commit();

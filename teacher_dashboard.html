@@ -694,18 +694,40 @@
                     </div>
                 </div>
 
+                <div style="display:flex; gap:15px; margin-bottom: 15px;">
+                    <div class="form-field" style="flex:1; margin-bottom:0;">
+                        <label>Type d'évaluation</label>
+                        <select name="eval_type" id="evalTypeSelect" onchange="document.getElementById('timeLimitContainer').style.display = (this.value === 'tele-eval') ? 'block' : 'none';">
+                            <option value="standard">Standard (Libre)</option>
+                            <option value="tele-eval">Télé-évaluation (Chronométré)</option>
+                        </select>
+                    </div>
+                    <div class="form-field" id="timeLimitContainer" style="flex:1; margin-bottom:0; display:none;">
+                        <label>Temps par question (sec)</label>
+                        <input type="number" name="time_limit_per_question" min="5" max="300" value="30">
+                    </div>
+                </div>
+
                 <div
                     style="display:flex; justify-content:space-between; align-items:center; margin-top:20px; margin-bottom:15px;">
                     <h3 style="font-size:1.1rem; color:var(--text-main);">Questions</h3>
-                    <div>
+                    <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; justify-content:flex-end;">
+                        <!-- Bouton import document -->
+                        <label id="importDocBtnLabel" for="importDocFile"
+                            style="background:linear-gradient(135deg,rgba(99,102,241,0.2),rgba(236,72,153,0.15)); color:#a78bfa; border:1px solid rgba(99,102,241,0.35); padding:6px 12px; border-radius:6px; font-size:0.8rem; cursor:pointer; font-weight:600; display:flex; align-items:center; gap:6px; transition:0.2s;"
+                            title="Importer PDF, DOCX ou PPTX — l'IA détecte les questions et réponses">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                            Importer (PDF/DOCX/PPTX)
+                        </label>
+                        <input type="file" id="importDocFile" accept=".pdf,.docx,.pptx" style="display:none;">
                         <button type="button" onclick="addQuestionBlock()"
                             style="background:rgba(16,185,129,0.15); color:var(--accent-2); border:1px solid rgba(16,185,129,0.3); padding:6px 12px; border-radius:6px; font-size:0.8rem; cursor:pointer; font-weight:600; margin-right:5px;">+
                             Ajouter</button>
-                        <!-- <button type="button" onclick="generateAIQuiz()"
-                            style="background:rgba(99,102,241,0.15); color:var(--primary); border:1px solid rgba(99,102,241,0.3); padding:6px 12px; border-radius:6px; font-size:0.8rem; cursor:pointer; font-weight:600;">✨
-                            Auto IA (3 Q.)
-                        </button> -->
                     </div>
+                </div>
+                <div id="importDocStatus" style="display:none; margin-bottom:12px; padding:10px 14px; border-radius:8px; font-size:0.85rem; font-weight:500;"></div>
+                <div style="background:rgba(255,255,255,0.03); padding:10px; border-radius:6px; font-size:0.75rem; color:var(--text-muted); margin-bottom:15px; border-left:3px solid #a78bfa;">
+                    <strong>💡 Conseil de formatage :</strong> Pour une détection optimale, numérotez vos questions (ex: <em>1. Quelle est...</em>) et marquez la bonne réponse avec un astérisque (ex: <em>a) PHP *</em>) ou écrivez <em>Réponse: PHP</em>.
                 </div>
 
                 <div id="questionsContainer"
@@ -720,15 +742,23 @@
             <script>
                 let questionCount = 0;
 
-                function addQuestionBlock(qText = '', cAns = '', w1 = '', w2 = '') {
+                function addQuestionBlock(qText = '', cAns = '', w1 = '', w2 = '', w3 = '') {
                     questionCount++;
                     const container = document.getElementById('questionsContainer');
                     const block = document.createElement('div');
                     block.className = 'question-block';
                     block.style.cssText =
                         "background: rgba(255,255,255,0.03); padding:15px; border-radius:10px; border:1px solid var(--border-color); margin-bottom:15px; position:relative;";
+                    
+                    // Si c'est importé mais incomplet
+                    let autoGenBtn = '';
+                    if (qText && (!cAns || cAns.includes('⚠️'))) {
+                        autoGenBtn = `<button type="button" onclick="generatePropositionsIA(this)" style="position:absolute; top:10px; right:40px; background:rgba(99,102,241,0.15); color:var(--primary); border:1px solid rgba(99,102,241,0.3); padding:4px 8px; border-radius:4px; font-size:0.7rem; cursor:pointer;">✨ Générer IA</button>`;
+                    }
+
                     block.innerHTML = `
                         <button type="button" onclick="this.parentElement.remove()" style="position:absolute; top:10px; right:10px; background:none; border:none; color:#ef4444; cursor:pointer; font-size:1.2rem;">&times;</button>
+                        ${autoGenBtn}
                         <h4 style="margin-bottom:10px; color:var(--text-muted); font-size:0.85rem;">Question ${questionCount}</h4>
                         <div class="form-field">
                             <textarea class="q-text" required placeholder="Votre question..." style="min-height:50px; font-size:0.9rem; padding:10px;">${qText}</textarea>
@@ -738,10 +768,13 @@
                                 <input type="text" class="q-correct" required placeholder="Bonne réponse" value="${cAns}" style="border-color:#10b981; background:rgba(16,185,129,0.05); font-size:0.85rem; padding:8px;">
                             </div>
                             <div class="form-field" style="margin:0;">
-                                <input type="text" class="q-wrong1" required placeholder="Fausse réponse 1" value="${w1}" style="font-size:0.85rem; padding:8px;">
+                                <input type="text" class="q-wrong1" required placeholder="Mauvaise réponse 1" value="${w1}" style="font-size:0.85rem; padding:8px;">
                             </div>
-                            <div class="form-field" style="margin:0; grid-column:span 2;">
-                                <input type="text" class="q-wrong2" placeholder="Fausse réponse 2 (Optionnel)" value="${w2}" style="font-size:0.85rem; padding:8px;">
+                            <div class="form-field" style="margin:0;">
+                                <input type="text" class="q-wrong2" placeholder="Mauvaise réponse 2" value="${w2}" style="font-size:0.85rem; padding:8px;">
+                            </div>
+                            <div class="form-field" style="margin:0;">
+                                <input type="text" class="q-wrong3" placeholder="Mauvaise réponse 3" value="${w3}" style="font-size:0.85rem; padding:8px;">
                             </div>
                         </div>
                     `;
@@ -820,6 +853,12 @@
                     });
                 }
 
+                // Import document listener for evalModal
+                document.getElementById('importDocFile').addEventListener('change', function() {
+                    handleDocumentImport(this, 'questionsContainer', addQuestionBlock, 'importDocStatus');
+                    this.value = '';
+                });
+
                 // Initialiser avec une question vide à l'ouverture si vide
                 document.getElementById('btnCreateCourse').addEventListener('click', () => {
                     // C'est juste un hook. On laisse addQuestionBlock() faire son travail quand openEval est appelé.
@@ -844,9 +883,28 @@
                         <option value="">Chargement des cours...</option>
                     </select>
                 </div>
-                <div class="form-field">
-                    <label>Date et Heure</label>
-                    <input type="datetime-local" name="eval_date" required>
+                <div class="form-field" style="display:flex; gap:15px;">
+                    <div style="flex:1;">
+                        <label>Date de début</label>
+                        <input type="datetime-local" name="eval_date" required>
+                    </div>
+                    <div style="flex:1;">
+                        <label>Date de fin</label>
+                        <input type="datetime-local" name="end_date" required>
+                    </div>
+                </div>
+                <div class="form-field" style="display:flex; gap:15px;">
+                    <div style="flex:1;">
+                        <label>Type d'évaluation</label>
+                        <select name="eval_type" id="evalTypeSelectProg" onchange="document.getElementById('timeLimitContainerProg').style.display = (this.value === 'tele-eval') ? 'block' : 'none';">
+                            <option value="standard">Standard (Libre)</option>
+                            <option value="tele-eval">Télé-évaluation (Chronométré)</option>
+                        </select>
+                    </div>
+                    <div id="timeLimitContainerProg" style="flex:1; display:none;">
+                        <label>Temps/Q. (sec)</label>
+                        <input type="number" name="time_limit_per_question" min="5" max="300" value="30">
+                    </div>
                 </div>
                 <div class="form-field" style="display: flex; align-items: center; gap: 10px;">
                     <input type="checkbox" name="is_final_exam" id="isFinalExamCheck" value="1" style="width: auto;" checked>
@@ -855,10 +913,21 @@
                 
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-top:20px; margin-bottom:15px;">
                     <h3 style="font-size:1.1rem; color:var(--text-main);">Questions</h3>
-                    <div>
+                    <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; justify-content:flex-end;">
+                        <label id="importDocBtnLabelProg" for="importDocFileProg"
+                            style="background:linear-gradient(135deg,rgba(99,102,241,0.2),rgba(236,72,153,0.15)); color:#a78bfa; border:1px solid rgba(99,102,241,0.35); padding:6px 12px; border-radius:6px; font-size:0.8rem; cursor:pointer; font-weight:600; display:flex; align-items:center; gap:6px;"
+                            title="Importer PDF, DOCX ou PPTX — l'IA détecte les questions et réponses">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                            Importer (PDF/DOCX/PPTX)
+                        </label>
+                        <input type="file" id="importDocFileProg" accept=".pdf,.docx,.pptx" style="display:none;">
                         <button type="button" onclick="addQuestionBlockProgram()"
                             style="background:rgba(16,185,129,0.15); color:var(--accent-2); border:1px solid rgba(16,185,129,0.3); padding:6px 12px; border-radius:6px; font-size:0.8rem; cursor:pointer; font-weight:600;">+ Ajouter</button>
                     </div>
+                </div>
+                <div id="importDocStatusProg" style="display:none; margin-bottom:12px; padding:10px 14px; border-radius:8px; font-size:0.85rem; font-weight:500;"></div>
+                <div style="background:rgba(255,255,255,0.03); padding:10px; border-radius:6px; font-size:0.75rem; color:var(--text-muted); margin-bottom:15px; border-left:3px solid #a78bfa;">
+                    <strong>💡 Conseil de formatage :</strong> Pour une détection optimale, numérotez vos questions (ex: <em>1. Quelle est...</em>) et marquez la bonne réponse avec un astérisque (ex: <em>a) PHP *</em>) ou écrivez <em>Réponse: PHP</em>.
                 </div>
 
                 <div id="questionsContainerProgram" style="max-height: 40vh; overflow-y: auto; padding-right:10px; margin-bottom:20px;">
@@ -872,14 +941,21 @@
     </div>
     <script>
         let questionCountProgram = 0;
-        window.addQuestionBlockProgram = function(qText = '', cAns = '', w1 = '', w2 = '') {
+        window.addQuestionBlockProgram = function(qText = '', cAns = '', w1 = '', w2 = '', w3 = '') {
             questionCountProgram++;
             const container = document.getElementById('questionsContainerProgram');
             const block = document.createElement('div');
             block.className = 'question-block';
             block.style.cssText = "background: rgba(255,255,255,0.03); padding:15px; border-radius:10px; border:1px solid var(--border-color); margin-bottom:15px; position:relative;";
+            
+            let autoGenBtn = '';
+            if (qText && (!cAns || cAns.includes('⚠️'))) {
+                autoGenBtn = `<button type="button" onclick="generatePropositionsIA(this)" style="position:absolute; top:10px; right:40px; background:rgba(99,102,241,0.15); color:var(--primary); border:1px solid rgba(99,102,241,0.3); padding:4px 8px; border-radius:4px; font-size:0.7rem; cursor:pointer;">✨ Générer IA</button>`;
+            }
+
             block.innerHTML = `
                 <button type="button" onclick="this.parentElement.remove()" style="position:absolute; top:10px; right:10px; background:none; border:none; color:#ef4444; cursor:pointer; font-size:1.2rem;">&times;</button>
+                ${autoGenBtn}
                 <h4 style="margin-bottom:10px; color:var(--text-muted); font-size:0.85rem;">Question ${questionCountProgram}</h4>
                 <div class="form-field">
                     <textarea class="q-text" required placeholder="Votre question..." style="min-height:50px; font-size:0.9rem; padding:10px;">${qText}</textarea>
@@ -889,14 +965,116 @@
                         <input type="text" class="q-correct" required placeholder="Bonne réponse" value="${cAns}" style="border-color:#10b981; background:rgba(16,185,129,0.05); font-size:0.85rem; padding:8px;">
                     </div>
                     <div class="form-field" style="margin:0;">
-                        <input type="text" class="q-wrong1" required placeholder="Fausse réponse 1" value="${w1}" style="font-size:0.85rem; padding:8px;">
+                        <input type="text" class="q-wrong1" required placeholder="Mauvaise réponse 1" value="${w1}" style="font-size:0.85rem; padding:8px;">
                     </div>
-                    <div class="form-field" style="margin:0; grid-column:span 2;">
-                        <input type="text" class="q-wrong2" placeholder="Fausse réponse 2 (Optionnel)" value="${w2}" style="font-size:0.85rem; padding:8px;">
+                    <div class="form-field" style="margin:0;">
+                        <input type="text" class="q-wrong2" placeholder="Mauvaise réponse 2" value="${w2}" style="font-size:0.85rem; padding:8px;">
+                    </div>
+                    <div class="form-field" style="margin:0;">
+                        <input type="text" class="q-wrong3" placeholder="Mauvaise réponse 3" value="${w3}" style="font-size:0.85rem; padding:8px;">
                     </div>
                 </div>
             `;
             container.appendChild(block);
+        }
+
+        window.generatePropositionsIA = function(btn) {
+            const block = btn.closest('.question-block');
+            const qText = block.querySelector('.q-text').value;
+            
+            // Simuler une requête IA
+            btn.innerHTML = `<span style="animation:spin 1s linear infinite; display:inline-block;">↻</span> IA cherche...`;
+            setTimeout(() => {
+                let correct = "Réponse générée (Exemple)";
+                let wrong1 = "Autre proposition incorrecte";
+                let wrong2 = "Une autre option erronée";
+                
+                // Exemples mockés rudimentaires basés sur des mots-clés
+                if (qText.toLowerCase().includes('php')) { correct="Un langage serveur"; wrong1="Un langage client"; wrong2="Une base de données"; }
+                if (qText.toLowerCase().includes('html')) { correct="HyperText Markup Language"; wrong1="Hyperlinks Text"; wrong2="Home Tool Markup"; }
+                if (qText.toLowerCase().includes('css')) { correct="Styliser la page"; wrong1="Créer la base de données"; wrong2="Gérer le serveur"; }
+                if (qText.toLowerCase().includes('sql')) { correct="Structured Query Language"; wrong1="System Quest Logic"; wrong2="Server Query Language"; }
+
+                block.querySelector('.q-correct').value = correct;
+                block.querySelector('.q-wrong1').value = wrong1;
+                block.querySelector('.q-wrong2').value = wrong2;
+                block.querySelector('.q-wrong3').value = "Une toute autre proposition erronée";
+                
+                btn.innerHTML = `✅ Propositions générées`;
+                btn.style.color = '#10b981';
+                btn.style.borderColor = '#10b981';
+                btn.style.background = 'rgba(16,185,129,0.1)';
+                setTimeout(() => btn.remove(), 2000);
+            }, 1000);
+        }
+
+        // Listener for programEvalModal
+        document.getElementById('importDocFileProg').addEventListener('change', function() {
+            handleDocumentImport(this, 'questionsContainerProgram', addQuestionBlockProgram, 'importDocStatusProg');
+            this.value = '';
+        });
+
+        // ================================================================
+        // FONCTION COMMUNE D'IMPORT DOCUMENT VERS QCM
+        // ================================================================
+        function handleDocumentImport(fileInput, containerId, addFn, statusId) {
+            const file = fileInput.files[0];
+            if (!file) return;
+
+            const statusEl = document.getElementById(statusId);
+            statusEl.style.display = 'block';
+            statusEl.style.background = 'rgba(99,102,241,0.1)';
+            statusEl.style.color = '#a78bfa';
+            statusEl.style.border = '1px solid rgba(99,102,241,0.2)';
+            statusEl.innerHTML = `
+                <span style="display:inline-block; width:14px; height:14px; border:2px solid #a78bfa; border-top-color:transparent; border-radius:50%; animation:spin 0.8s linear infinite; vertical-align:middle; margin-right:8px;"></span>
+                Analyse du document en cours... L'IA détecte les questions et réponses.
+            `;
+
+            const fd = new FormData();
+            fd.append('document', file);
+
+            fetch('api/parse_document.php', { method: 'POST', body: fd })
+            .then(r => r.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    const container = document.getElementById(containerId);
+                    // On ajoute les questions extraites (q, c, w1, w2, w3)
+                    data.questions.forEach(q => addFn(q.q, q.c, q.w1, q.w2, q.w3));
+
+                    statusEl.style.background = 'rgba(16,185,129,0.1)';
+                    statusEl.style.color = '#10b981';
+                    statusEl.style.border = '1px solid rgba(16,185,129,0.2)';
+                    statusEl.innerHTML = `
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:middle; margin-right:6px;"><polyline points="20 6 9 17 4 12"/></svg>
+                        ${data.count} question(s) importée(s) avec succès !
+                        <span style="color:rgba(16,185,129,0.7); font-size:0.8rem;"> Vérifiez les réponses marquées ⚠️.</span>
+                    `;
+                } else if (data.status === 'warning') {
+                    statusEl.style.background = 'rgba(245,158,11,0.1)';
+                    statusEl.style.color = '#f59e0b';
+                    statusEl.style.border = '1px solid rgba(245,158,11,0.2)';
+                    statusEl.innerHTML = `
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle; margin-right:6px;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                        ${data.message}
+                        ${data.raw_preview ? `<br><code style="font-size:0.75rem; opacity:0.7;">${data.raw_preview.substring(0,200)}...</code>` : ''}
+                    `;
+                } else {
+                    statusEl.style.background = 'rgba(239,68,68,0.1)';
+                    statusEl.style.color = '#ef4444';
+                    statusEl.style.border = '1px solid rgba(239,68,68,0.2)';
+                    statusEl.innerHTML = `
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle; margin-right:6px;"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                        ${data.message}
+                    `;
+                }
+            })
+            .catch(() => {
+                statusEl.style.background = 'rgba(239,68,68,0.1)';
+                statusEl.style.color = '#ef4444';
+                statusEl.style.border = '1px solid rgba(239,68,68,0.2)';
+                statusEl.innerHTML = 'Erreur de connexion avec le serveur.';
+            });
         }
     </script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>

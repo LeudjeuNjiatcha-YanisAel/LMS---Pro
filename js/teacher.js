@@ -444,7 +444,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 q: b.querySelector('.q-text').value.trim(),
                 c: b.querySelector('.q-correct').value.trim(),
                 w1: b.querySelector('.q-wrong1').value.trim(),
-                w2: b.querySelector('.q-wrong2').value.trim()
+                w2: b.querySelector('.q-wrong2') ? b.querySelector('.q-wrong2').value.trim() : '',
+                w3: b.querySelector('.q-wrong3') ? b.querySelector('.q-wrong3').value.trim() : ''
             });
         });
 
@@ -599,9 +600,10 @@ document.addEventListener('DOMContentLoaded', function() {
             const q = block.querySelector('.q-text').value;
             const c = block.querySelector('.q-correct').value;
             const w1 = block.querySelector('.q-wrong1').value;
-            const w2 = block.querySelector('.q-wrong2').value;
+            const w2 = block.querySelector('.q-wrong2') ? block.querySelector('.q-wrong2').value : '';
+            const w3 = block.querySelector('.q-wrong3') ? block.querySelector('.q-wrong3').value : '';
             if (q && c && w1) {
-                questionsArray.push({ q, c, w1, w2 });
+                questionsArray.push({ q, c, w1, w2, w3 });
             }
         });
         
